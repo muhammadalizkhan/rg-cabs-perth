@@ -3,6 +3,7 @@ import Navbar from "@/components/navbar/navbar"
 import Hero from "@/components/hero/hero"
 import Services from "@/components/services/services"
 import BookACap from "@/components/bookingCap/bookingCap"
+import AboutUS from "@/components/aboutus/aboutus"
 
 export default function Home() {
   return (
@@ -11,6 +12,7 @@ export default function Home() {
       <Hero />
       <Services />
       <BookACap />
+      <AboutUS />
     </div>
   )
 }

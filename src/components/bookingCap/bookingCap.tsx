@@ -248,7 +248,7 @@ export default function BookingCap() {
   const selectedVehicle = vehicleTypes.find((v) => v.id === bookingData.vehicleType)
 
   return (
-    <section className="relative bg-gradient-to-b from-white to-[#f8f9fa] py-20 lg:py-28 overflow-hidden">
+    <section className="relative bg-gradient-to-b from-white to-gray-50 py-20 lg:py-28 overflow-hidden">
       {/* Background decorative elements */}
       <div className="absolute top-20 right-10 w-72 h-72 bg-yellow-400/5 rounded-full blur-3xl"></div>
       <div className="absolute bottom-20 left-10 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"></div>
@@ -298,7 +298,7 @@ export default function BookingCap() {
         </div>
 
         {/* Main Booking Form */}
-        <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 border border-white/20 shadow-2xl">
+        <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-8 border border-white/20 shadow-2xl">
           {/* Step 1: Trip Details */}
           {currentStep === 1 && (
             <div className="space-y-8">
@@ -320,7 +320,7 @@ export default function BookingCap() {
                     onChange={(e) => handleInputChange("pickup", e.target.value)}
                     onFocus={() => setShowPickupSuggestions(true)}
                     placeholder="Enter pickup location"
-                    className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-300"
+                    className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-300 text-gray-900 placeholder-gray-500 bg-white"
                   />
                   {showPickupSuggestions && pickupSuggestions.length > 0 && (
                     <div className="absolute z-10 w-full bg-white border border-gray-200 rounded-xl shadow-lg mt-1 max-h-48 overflow-y-auto">
@@ -328,7 +328,7 @@ export default function BookingCap() {
                         <button
                           key={index}
                           onClick={() => selectLocation(location, "pickup")}
-                          className="w-full text-left p-3 hover:bg-gray-50 transition-colors duration-200 flex items-center gap-2"
+                          className="w-full text-left p-3 hover:bg-gray-50 transition-colors duration-200 flex items-center gap-2 text-gray-900"
                         >
                           <MapPin className="h-4 w-4 text-gray-400" />
                           {location}
@@ -350,7 +350,7 @@ export default function BookingCap() {
                     onChange={(e) => handleInputChange("destination", e.target.value)}
                     onFocus={() => setShowDestinationSuggestions(true)}
                     placeholder="Enter destination"
-                    className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-300"
+                    className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-300 text-gray-900 placeholder-gray-500 bg-white"
                   />
                   {showDestinationSuggestions && destinationSuggestions.length > 0 && (
                     <div className="absolute z-10 w-full bg-white border border-gray-200 rounded-xl shadow-lg mt-1 max-h-48 overflow-y-auto">
@@ -358,7 +358,7 @@ export default function BookingCap() {
                         <button
                           key={index}
                           onClick={() => selectLocation(location, "destination")}
-                          className="w-full text-left p-3 hover:bg-gray-50 transition-colors duration-200 flex items-center gap-2"
+                          className="w-full text-left p-3 hover:bg-gray-50 transition-colors duration-200 flex items-center gap-2 text-gray-900"
                         >
                           <MapPin className="h-4 w-4 text-gray-400" />
                           {location}
@@ -379,7 +379,7 @@ export default function BookingCap() {
                     value={bookingData.date}
                     min={getCurrentDate()}
                     onChange={(e) => handleInputChange("date", e.target.value)}
-                    className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-300"
+                    className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-300 text-gray-900 bg-white"
                   />
                 </div>
 
@@ -393,7 +393,7 @@ export default function BookingCap() {
                     type="time"
                     value={bookingData.time}
                     onChange={(e) => handleInputChange("time", e.target.value)}
-                    className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-300"
+                    className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-300 text-gray-900 bg-white"
                   />
                 </div>
               </div>
@@ -501,7 +501,7 @@ export default function BookingCap() {
                     value={bookingData.firstName}
                     onChange={(e) => handleInputChange("firstName", e.target.value)}
                     placeholder="Enter first name"
-                    className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-300"
+                    className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-300 text-gray-900 placeholder-gray-500 bg-white"
                   />
                 </div>
 
@@ -515,7 +515,7 @@ export default function BookingCap() {
                     value={bookingData.lastName}
                     onChange={(e) => handleInputChange("lastName", e.target.value)}
                     placeholder="Enter last name"
-                    className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-300"
+                    className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-300 text-gray-900 placeholder-gray-500 bg-white"
                   />
                 </div>
 
@@ -529,7 +529,7 @@ export default function BookingCap() {
                     value={bookingData.email}
                     onChange={(e) => handleInputChange("email", e.target.value)}
                     placeholder="Enter email address"
-                    className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-300"
+                    className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-300 text-gray-900 placeholder-gray-500 bg-white"
                   />
                 </div>
 
@@ -543,7 +543,7 @@ export default function BookingCap() {
                     value={bookingData.phone}
                     onChange={(e) => handleInputChange("phone", e.target.value)}
                     placeholder="Enter phone number"
-                    className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-300"
+                    className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-300 text-gray-900 placeholder-gray-500 bg-white"
                   />
                 </div>
 
@@ -555,7 +555,7 @@ export default function BookingCap() {
                   <select
                     value={bookingData.passengers}
                     onChange={(e) => handleInputChange("passengers", Number.parseInt(e.target.value))}
-                    className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-300"
+                    className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-300 text-gray-900 bg-white"
                   >
                     {[1, 2, 3, 4, 5, 6].map((num) => (
                       <option key={num} value={num}>
@@ -573,7 +573,7 @@ export default function BookingCap() {
                   onChange={(e) => handleInputChange("specialRequests", e.target.value)}
                   placeholder="Any special requirements or requests..."
                   rows={3}
-                  className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-300 resize-none"
+                  className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-300 resize-none text-gray-900 placeholder-gray-500 bg-white"
                 />
               </div>
 
