@@ -11,7 +11,6 @@ import {
   Check,
   Star,
   Shield,
-  CreditCard,
   Phone,
   Mail,
   User,
@@ -166,8 +165,8 @@ export default function BookingCap() {
     specialRequests: "",
   })
 
-  const [pickupSuggestions, setPickupSuggestions] = useState([])
-  const [destinationSuggestions, setDestinationSuggestions] = useState([])
+  const [pickupSuggestions, setPickupSuggestions] = useState<string[]>([])
+  const [destinationSuggestions, setDestinationSuggestions] = useState<string[]>([])
   const [showPickupSuggestions, setShowPickupSuggestions] = useState(false)
   const [showDestinationSuggestions, setShowDestinationSuggestions] = useState(false)
 
@@ -194,7 +193,7 @@ export default function BookingCap() {
   }, [])
 
   // Location search functionality
-  const searchLocations = (query, type) => {
+  const searchLocations = (query: string, type: string) => {
     if (query.length < 2) {
       if (type === "pickup") setPickupSuggestions([])
       if (type === "destination") setDestinationSuggestions([])
@@ -209,20 +208,20 @@ export default function BookingCap() {
     if (type === "destination") setDestinationSuggestions(filtered)
   }
 
-  const handleInputChange = (field, value) => {
+  const handleInputChange = (field: string, value: string | number) => {
     setBookingData((prev) => ({ ...prev, [field]: value }))
 
     if (field === "pickup") {
-      searchLocations(value, "pickup")
+      searchLocations(value as string, "pickup")
       setShowPickupSuggestions(true)
     }
     if (field === "destination") {
-      searchLocations(value, "destination")
+      searchLocations(value as string, "destination")
       setShowDestinationSuggestions(true)
     }
   }
 
-  const selectLocation = (location, type) => {
+  const selectLocation = (location: string, type: string) => {
     if (type === "pickup") {
       setBookingData((prev) => ({ ...prev, pickup: location }))
       setShowPickupSuggestions(false)
@@ -717,7 +716,6 @@ export default function BookingCap() {
                   }}
                   className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group"
                 >
-                  <CreditCard className="mr-2 h-5 w-5" />
                   Confirm Booking
                   <Check className="ml-2 h-5 w-5 group-hover:scale-110 transition-transform duration-300" />
                 </Button>
