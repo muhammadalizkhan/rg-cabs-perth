@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "RS Perth Taxi",
+  title: "RG Cab",
   description: "RS is Taxi Service Provider in Perth",
 };
 
