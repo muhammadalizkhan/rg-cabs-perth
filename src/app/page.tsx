@@ -4,6 +4,10 @@ import Hero from "@/components/hero/hero"
 import Services from "@/components/services/services"
 import BookACap from "@/components/bookingCap/bookingCap"
 import AboutUS from "@/components/aboutus/aboutus"
+import ContactUS from "@/components/contactUs/contactUs"
+import FAQs from "@/components/faqs/faqs"
+import Footer from "@/components/footer/footer"
+
 
 export default function Home() {
   return (
@@ -13,6 +17,9 @@ export default function Home() {
       <Services />
       <BookACap />
       <AboutUS />
+      <ContactUS />
+      <FAQs />
+      <Footer />
     </div>
   )
 }
