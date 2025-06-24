@@ -270,62 +270,6 @@ export default function Footer() {
             </div>
           </div>
         </div>
-
-        {/* Payment Methods Section */}
-        <div className="mt-16 pt-12 border-t border-gray-800">
-          <div className="text-center space-y-6">
-            <h4 className="text-2xl font-bold">Secure Payment Options</h4>
-            <p className="text-gray-400 max-w-2xl mx-auto">
-              We accept all major payment methods for your convenience and security.
-            </p>
-            <div className="flex flex-wrap justify-center items-center gap-6">
-              {/* Credit Cards */}
-              <div className="flex items-center gap-4 px-6 py-3 bg-gray-800 rounded-xl border border-gray-700">
-                <CreditCard className="h-6 w-6 text-blue-400" />
-                <span className="font-medium">Visa</span>
-              </div>
-              <div className="flex items-center gap-4 px-6 py-3 bg-gray-800 rounded-xl border border-gray-700">
-                <CreditCard className="h-6 w-6 text-red-400" />
-                <span className="font-medium">Mastercard</span>
-              </div>
-              <div className="flex items-center gap-4 px-6 py-3 bg-gray-800 rounded-xl border border-gray-700">
-                <CreditCard className="h-6 w-6 text-blue-600" />
-                <span className="font-medium">American Express</span>
-              </div>
-
-              {/* Digital Payments */}
-              <div className="flex items-center gap-4 px-6 py-3 bg-gray-800 rounded-xl border border-gray-700">
-                <div className="w-6 h-6 bg-blue-500 rounded flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">P</span>
-                </div>
-                <span className="font-medium">PayPal</span>
-              </div>
-              <div className="flex items-center gap-4 px-6 py-3 bg-gray-800 rounded-xl border border-gray-700">
-                <div className="w-6 h-6 bg-black rounded flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">A</span>
-                </div>
-                <span className="font-medium">Apple Pay</span>
-              </div>
-              <div className="flex items-center gap-4 px-6 py-3 bg-gray-800 rounded-xl border border-gray-700">
-                <div className="w-6 h-6 bg-green-500 rounded flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">G</span>
-                </div>
-                <span className="font-medium">Google Pay</span>
-              </div>
-
-              {/* Cash */}
-              <div className="flex items-center gap-4 px-6 py-3 bg-gray-800 rounded-xl border border-gray-700">
-                <div className="w-6 h-6 bg-green-600 rounded flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">$</span>
-                </div>
-                <span className="font-medium">Cash</span>
-              </div>
-            </div>
-            <p className="text-sm text-gray-500">
-              All transactions are encrypted and secure. We never store your payment information.
-            </p>
-          </div>
-        </div>
       </div>
 
       {/* Bottom Footer */}

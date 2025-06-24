@@ -12,6 +12,9 @@ const navigationItems = [
   { name: "Services", href: "/services", description: "Premium ride options" },
   { name: "Booking", href: "/booking", description: "Reserve your ride" },
   { name: "Contact", href: "/contact", description: "Get in touch" },
+  { name: "FAQs", href: "/faqs", description: "Frequently Asked Questions" },
+  { name: "Secure Payment", href: "/securePayment", description: "Safe & secure transactions" },
+
 ]
 
 export default function Navbar() {
@@ -110,6 +113,9 @@ export default function Navbar() {
               </div>
               <Button className="bg-gradient-to-r from-black to-gray-800 text-yellow-400 hover:from-gray-800 hover:to-black hover:text-yellow-300 px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                 Book Now
+              </Button>
+                <Button className="bg-gradient-to-r from-black to-gray-800 text-yellow-400 hover:from-gray-800 hover:to-black hover:text-yellow-300 px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                Join as a Driver
               </Button>
             </div>
             <div className="lg:hidden">
