@@ -43,7 +43,7 @@ const serviceItems = [
     description: "Accessible transportation",
   },
   { name: "Parcel Delivery", href: "/ParcelDelivery", icon: Package, description: "Package and courier service" },
-  { name: "Tours/Day Trips", href: "/services/tours", icon: MapPin, description: "Sightseeing and excursions" },
+  { name: "Tours/Day Trips", href: "/ToursandTrips", icon: MapPin, description: "Sightseeing and excursions" },
   { name: "Baby Capsules", href: "/BabyCapsules", icon: Baby, description: "Child-safe transportation" },
   {
     name: "Airport Transfers Perth",
