@@ -14,16 +14,49 @@ export default function ContactUs() {
     message: "",
   })
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle form submission here
-    setIsSubmitted(true)
-    setTimeout(() => setIsSubmitted(false), 3000)
+    if (!canSubmit) return
+
+    setIsSubmitting(true)
+
+    try {
+      const res = await fetch("/api", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      })
+
+      const data = await res.json()
+
+      if (res.ok) {
+        setIsSubmitted(true)
+        setFormData({
+          name: "",
+          email: "",
+          phone: "",
+          subject: "",
+          message: "",
+        })
+        setTimeout(() => setIsSubmitted(false), 5000)
+      } else {
+        console.error("Server error:", data.error)
+        alert(data.error || "Failed to send message. Please try again or call us directly at (08) 1234 5678.")
+      }
+    } catch (error) {
+      console.error("Network error:", error)
+      alert(
+        "Network error occurred. Please check your connection and try again, or call us directly at (08) 1234 5678.",
+      )
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const canSubmit = formData.name && formData.email && formData.message
@@ -158,7 +191,7 @@ export default function ContactUs() {
 
               <Button
                 type="submit"
-                disabled={!canSubmit || isSubmitted}
+                disabled={!canSubmit || isSubmitted || isSubmitting}
                 className={`w-full py-4 px-6 rounded-lg font-semibold text-lg transition-all duration-200 ${
                   isSubmitted
                     ? "bg-green-500 hover:bg-green-500 text-white"
@@ -169,6 +202,11 @@ export default function ContactUs() {
                   <>
                     <Check className="w-5 h-5 mr-2" />
                     Message Sent Successfully
+                  </>
+                ) : isSubmitting ? (
+                  <>
+                    <div className="w-5 h-5 mr-2 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                    Sending Message...
                   </>
                 ) : (
                   <>
