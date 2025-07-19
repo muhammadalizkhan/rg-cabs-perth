@@ -1,99 +1,142 @@
+"use client"
+
+import Link from "next/link"
 import {
   Plane,
   Building2,
   MapPin,
   Heart,
   Calendar,
-  Stethoscope,
-  ShoppingBag,
   Route,
   ArrowRight,
   Clock,
   Shield,
   Star,
+  Car,
+  Package,
+  Baby,
+  Accessibility,
 } from "lucide-react"
 
 const services = [
   {
     id: 1,
-    title: "Airport Transfers",
-    description: "Seamless pickup and drop-off services to all major airports with flight tracking and meet & greet.",
+    title: "Airport Transfers Perth",
+    description:
+      "Professional airport pickup and drop-off services with flight tracking and punctual arrivals to all Perth terminals.",
     icon: Plane,
     color: "from-blue-500 to-cyan-500",
     features: ["Flight Tracking", "Meet & Greet", "24/7 Available"],
-    price: "From $45",
+    price: "From $55",
+    href: "/AirportTransfersPerth",
     popular: true,
   },
   {
     id: 2,
-    title: "Corporate Transfers",
+    title: "Corporate Transfer",
     description:
-      "Professional business transportation with executive vehicles and priority booking for corporate clients.",
+      "Executive business transportation with premium vehicles and professional service for corporate clients and meetings.",
     icon: Building2,
     color: "from-gray-700 to-gray-900",
     features: ["Executive Vehicles", "Priority Booking", "Business Accounts"],
-    price: "From $35",
+    price: "From $65",
+    href: "/Corporate",
     popular: false,
   },
   {
     id: 3,
-    title: "City Tours",
-    description: "Explore Australia's beautiful cities with our guided tour services and knowledgeable local drivers.",
+    title: "Tours/Day Trips",
+    description:
+      "Explore Perth's beautiful attractions with guided tour services and knowledgeable local drivers for sightseeing adventures.",
     icon: MapPin,
     color: "from-green-500 to-emerald-500",
     features: ["Local Guides", "Flexible Routes", "Photo Stops"],
-    price: "From $80/hr",
+    price: "From $150/hr",
+    href: "/ToursandTrips",
     popular: false,
   },
   {
     id: 4,
-    title: "Wedding Transportation",
-    description: "Make your special day perfect with luxury wedding cars and professional chauffeur services.",
-    icon: Heart,
+    title: "PerthTaxiVan",
+    description:
+      "Spacious group transportation with large vehicles perfect for families, events, and group outings around Perth.",
+    icon: Car,
     color: "from-pink-500 to-rose-500",
-    features: ["Luxury Vehicles", "Decoration Options", "Multiple Trips"],
-    price: "From $150",
+    features: ["Large Capacity", "Group Bookings", "Event Transport"],
+    price: "From $105",
+    href: "/perth-taxi-van",
     popular: false,
   },
   {
     id: 5,
-    title: "Event Transportation",
-    description: "Group transportation for concerts, sports events, and special occasions with flexible scheduling.",
+    title: "Social Event",
+    description:
+      "Group transportation for parties, concerts, sporting events, and celebrations with flexible scheduling and safe returns.",
     icon: Calendar,
     color: "from-purple-500 to-violet-500",
-    features: ["Group Bookings", "Event Coordination", "Flexible Timing"],
-    price: "From $60",
+    features: ["Group Bookings", "Event Coordination", "Safe Returns"],
+    price: "From $85",
+    href: "/SocialEvent",
     popular: false,
   },
   {
     id: 6,
-    title: "Medical Appointments",
+    title: "Special Occasion",
     description:
-      "Reliable and comfortable transportation for medical visits with assistance and wheelchair accessibility.",
-    icon: Stethoscope,
+      "Premium transportation for weddings, anniversaries, and special celebrations with advance booking up to one year ahead.",
+    icon: Heart,
     color: "from-red-500 to-orange-500",
-    features: ["Wheelchair Access", "Medical Assistance", "Insurance Billing"],
-    price: "From $25",
+    features: ["Advance Booking", "Special Events", "Premium Service"],
+    price: "From $120",
+    href: "/SpecialEvent",
     popular: false,
   },
   {
     id: 7,
-    title: "Shopping & Leisure",
-    description: "Convenient rides to shopping centers, restaurants, and entertainment venues with wait time options.",
-    icon: ShoppingBag,
+    title: "Wheelchair Transfer",
+    description:
+      "Accessible transportation with wheelchair-friendly vehicles for medical appointments, shopping, and personal trips.",
+    icon: Accessibility,
     color: "from-yellow-500 to-orange-500",
-    features: ["Wait Time Options", "Multiple Stops", "Shopping Assistance"],
-    price: "From $20",
+    features: ["Wheelchair Access", "Medical Trips", "Shopping Assistance"],
+    price: "From $70",
+    href: "/WheelchairTransfers",
     popular: false,
   },
   {
     id: 8,
-    title: "Long Distance Travel",
-    description: "Comfortable intercity travel with premium vehicles for longer journeys across Australia.",
-    icon: Route,
+    title: "Parcel Delivery",
+    description:
+      "Fast and reliable courier service for urgent deliveries, medical samples, documents, and packages across Perth.",
+    icon: Package,
     color: "from-indigo-500 to-blue-500",
-    features: ["Premium Comfort", "Rest Stops", "Intercity Routes"],
-    price: "From $120",
+    features: ["ASAP Delivery", "Medical Samples", "Urgent Documents"],
+    price: "From $35",
+    href: "/ParcelDelivery",
+    popular: false,
+  },
+  {
+    id: 9,
+    title: "FIFO Transfer",
+    description:
+      "Reliable fly-in fly-out transportation for mining and remote workers with 24/7 availability and regular schedules.",
+    icon: Route,
+    color: "from-teal-500 to-cyan-500",
+    features: ["24/7 Service", "Regular Schedules", "Worker Transport"],
+    price: "From $60",
+    href: "/FIFOTransfer",
+    popular: false,
+  },
+  {
+    id: 10,
+    title: "Baby Capsules",
+    description:
+      "Child-safe transportation with Australian safety standard compliant baby capsules and car seats for all ages.",
+    icon: Baby,
+    color: "from-emerald-500 to-green-500",
+    features: ["Safety Certified", "All Ages", "Advance Booking"],
+    price: "From $65",
+    href: "/BabyCapsules",
     popular: false,
   },
 ]
@@ -101,14 +144,12 @@ const services = [
 export default function Services() {
   return (
     <section className="relative bg-gradient-to-b from-[#f8f9fa] to-white py-20 lg:py-28 overflow-hidden">
-      {/* Background decorative elements */}
       <div className="absolute top-20 left-10 w-64 h-64 bg-yellow-400/5 rounded-full blur-3xl"></div>
       <div className="absolute bottom-20 right-10 w-80 h-80 bg-blue-500/5 rounded-full blur-3xl"></div>
       <div className="absolute top-1/3 right-1/4 w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
       <div className="absolute bottom-1/4 left-1/3 w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce"></div>
 
       <div className="relative max-w-7xl mx-auto px-6 lg:px-8">
-        {/* Header Section */}
         <div className="text-center space-y-6 mb-16">
           <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-gray-200 shadow-sm">
             <Shield className="h-4 w-4 text-green-500" />
@@ -124,11 +165,10 @@ export default function Services() {
 
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
             From airport transfers to special events, we provide premium transportation solutions tailored to your needs
-            across Australia.
+            across Perth and surrounding areas.
           </p>
         </div>
 
-        {/* Services Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {services.map((service, index) => {
             const IconComponent = service.icon
@@ -140,7 +180,6 @@ export default function Services() {
                   animationDelay: `${index * 100}ms`,
                 }}
               >
-                {/* Popular badge */}
                 {service.popular && (
                   <div className="absolute -top-3 -right-3 bg-gradient-to-r from-yellow-400 to-yellow-500 text-black text-xs font-bold px-3 py-1 rounded-full shadow-lg flex items-center gap-1">
                     <Star className="h-3 w-3 fill-current" />
@@ -148,20 +187,17 @@ export default function Services() {
                   </div>
                 )}
 
-                {/* Gradient background overlay */}
                 <div
                   className={`absolute inset-0 bg-gradient-to-br ${service.color} opacity-0 group-hover:opacity-5 rounded-3xl transition-opacity duration-500`}
                 ></div>
 
                 <div className="relative z-10 space-y-4">
-                  {/* Icon */}
                   <div
                     className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${service.color} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}
                   >
                     <IconComponent className="h-7 w-7 text-white" />
                   </div>
 
-                  {/* Content */}
                   <div className="space-y-3">
                     <h3 className="text-xl font-bold text-gray-900 group-hover:text-gray-800 transition-colors">
                       {service.title}
@@ -169,7 +205,6 @@ export default function Services() {
 
                     <p className="text-gray-600 text-sm leading-relaxed line-clamp-3">{service.description}</p>
 
-                    {/* Features */}
                     <div className="space-y-2">
                       {service.features.map((feature, idx) => (
                         <div key={idx} className="flex items-center gap-2 text-xs text-gray-500">
@@ -179,18 +214,19 @@ export default function Services() {
                       ))}
                     </div>
 
-                    {/* Price and CTA */}
                     <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
                       <div className="text-lg font-bold text-gray-900">{service.price}</div>
-                      <button className="flex items-center gap-1 text-sm font-semibold text-gray-700 hover:text-gray-900 group-hover:gap-2 transition-all duration-300">
-                        Book Now
+                      <Link
+                        href={service.href}
+                        className="flex items-center gap-1 text-sm font-semibold text-gray-700 hover:text-gray-900 group-hover:gap-2 transition-all duration-300"
+                      >
+                        Learn More
                         <ArrowRight className="h-4 w-4" />
-                      </button>
+                      </Link>
                     </div>
                   </div>
                 </div>
 
-                {/* Hover effect border */}
                 <div
                   className={`absolute inset-0 rounded-3xl border-2 border-transparent group-hover:border-gradient-to-r group-hover:${service.color.replace("from-", "border-").replace("to-", "")} opacity-0 group-hover:opacity-20 transition-opacity duration-300`}
                 ></div>
@@ -199,7 +235,6 @@ export default function Services() {
           })}
         </div>
 
-        {/* Bottom CTA Section */}
         <div className="mt-20 text-center">
           <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 border border-white/20 shadow-xl max-w-4xl mx-auto">
             <div className="space-y-6">
