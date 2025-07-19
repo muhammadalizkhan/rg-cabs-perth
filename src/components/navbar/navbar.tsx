@@ -33,8 +33,8 @@ const navigationItems = [
 const serviceItems = [
   { name: "Corporate Transfer", href: "/Corporate", icon: Users, description: "Professional business travel" },
   { name: "Perth Taxi Van", href: "/PerthTaxiVan", icon: Car, description: "Spacious group transportation" },
-  { name: "FIFO Transfer", href: "/services/fifo", icon: Plane, description: "Fly-in fly-out services" },
-  { name: "Social Event", href: "/services/social", icon: Calendar, description: "Party and event transport" },
+  { name: "FIFO Transfer", href: "/FIFOTransfer", icon: Plane, description: "Fly-in fly-out services" },
+  { name: "Social Event", href: "/SocialEvent", icon: Calendar, description: "Party and event transport" },
   { name: "Special Occasion", href: "/services/special", icon: Calendar, description: "Weddings and celebrations" },
   {
     name: "Wheelchair Transfers",
