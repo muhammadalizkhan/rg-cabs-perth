@@ -85,7 +85,6 @@ const popularLocations = {
     "Optus Stadium",
     "Crown Perth",
   ],
-  // Add other cities if needed, but focus on Perth for this request
 }
 
 // Vehicle types
