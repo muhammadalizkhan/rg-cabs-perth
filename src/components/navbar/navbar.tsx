@@ -46,14 +46,8 @@ const serviceItems = [
   { name: "Tours/Day Trips", href: "/services/tours", icon: MapPin, description: "Sightseeing and excursions" },
   { name: "Baby Capsules", href: "/services/baby", icon: Baby, description: "Child-safe transportation" },
   {
-    name: "Surfboard Fish Rod Transfer",
-    href: "/services/surfboard",
-    icon: Waves,
-    description: "Sports equipment transport",
-  },
-  {
     name: "Airport Transfers Perth",
-    href: "/services/airport",
+    href: "/AirportTransfersPerth",
     icon: Plane,
     description: "Airport pickup and drop-off",
   },
@@ -63,6 +57,9 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [servicesOpen, setServicesOpen] = useState(false)
+  const leftServices = serviceItems.slice(0, 5)
+  const rightServices = serviceItems.slice(5)
+
   const [mobileServicesOpen, setMobileServicesOpen] = useState(false)
 
   useEffect(() => {
@@ -128,8 +125,8 @@ export default function Navbar() {
       </div>
       <nav
         className={`sticky top-0 z-50 w-full transition-all duration-300 ${scrolled
-            ? "bg-white/95 backdrop-blur-xl shadow-lg border-b border-gray-200"
-            : "bg-white border-b border-gray-100"
+          ? "bg-white/95 backdrop-blur-xl shadow-lg border-b border-gray-200"
+          : "bg-white border-b border-gray-100"
           }`}
       >
         <div className="mx-auto max-w-7xl px-6">
@@ -181,34 +178,43 @@ export default function Navbar() {
                             }`}
                           style={{ zIndex: 9999 }}
                         >
-                          <div className="p-4">
-                            <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-                              Our Services
-                            </div>
-                            <div className="max-h-80 overflow-y-auto apple-scrollbar">
-                              <div className="space-y-1 pr-1">
-                                {serviceItems.map((service) => {
-                                  const IconComponent = service.icon
-                                  return (
-                                    <Link
-                                      key={service.name}
-                                      href={service.href}
-                                      className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors duration-200 group"
-                                      onClick={() => setServicesOpen(false)}
-                                    >
-                                      <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center group-hover:bg-yellow-100 transition-colors duration-200 flex-shrink-0">
-                                        <IconComponent className="h-4 w-4 text-gray-600 group-hover:text-yellow-600" />
-                                      </div>
-                                      <div className="flex-1 min-w-0">
-                                        <div className="text-sm font-medium text-gray-900 truncate">{service.name}</div>
-                                        <div className="text-xs text-gray-500 truncate">{service.description}</div>
-                                      </div>
-                                    </Link>
-                                  )
-                                })}
+                          <div
+                            className={`absolute top-full left-0 mt-2 w-[640px] bg-white rounded-2xl shadow-2xl border border-gray-100 transition-all duration-200 ${servicesOpen ? "opacity-100 visible translate-y-0" : "opacity-0 invisible translate-y-2"
+                              }`}
+                            style={{ zIndex: 9999 }}
+                          >
+                            <div className="p-4">
+                              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+                                Our Services
+                              </div>
+                              <div className="flex gap-4">
+                                {[leftServices, rightServices].map((column, colIndex) => (
+                                  <div key={colIndex} className="flex-1 space-y-1">
+                                    {column.map((service) => {
+                                      const IconComponent = service.icon
+                                      return (
+                                        <Link
+                                          key={service.name}
+                                          href={service.href}
+                                          className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors duration-200 group"
+                                          onClick={() => setServicesOpen(false)}
+                                        >
+                                          <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center group-hover:bg-yellow-100 transition-colors duration-200 flex-shrink-0">
+                                            <IconComponent className="h-4 w-4 text-gray-600 group-hover:text-yellow-600" />
+                                          </div>
+                                          <div className="flex-1 min-w-0">
+                                            <div className="text-sm font-medium text-gray-900 truncate">{service.name}</div>
+                                            <div className="text-xs text-gray-500 truncate">{service.description}</div>
+                                          </div>
+                                        </Link>
+                                      )
+                                    })}
+                                  </div>
+                                ))}
                               </div>
                             </div>
                           </div>
+
                         </div>
                       </div>
                     ) : (
@@ -321,35 +327,42 @@ export default function Navbar() {
                             }`}
                         >
                           <div className="ml-4 mt-2">
-                            {/* Apple-style invisible scrollbar */}
                             <div className="max-h-96 overflow-y-auto apple-scrollbar">
-                              <div className="space-y-1 pr-1">
-                                {serviceItems.map((service, serviceIndex) => {
-                                  const IconComponent = service.icon
-                                  return (
-                                    <Link
-                                      key={service.name}
-                                      href={service.href}
-                                      onClick={() => setIsOpen(false)}
-                                      className={`flex items-center gap-4 p-3 rounded-xl hover:bg-gray-50 transition-all duration-200 group ${mobileServicesOpen ? "animate-in slide-in-from-left" : ""
-                                        }`}
-                                      style={{
-                                        animationDelay: `${serviceIndex * 50}ms`,
-                                        animationFillMode: "both",
-                                      }}
-                                    >
-                                      <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center group-hover:bg-yellow-100 transition-colors duration-200 flex-shrink-0">
-                                        <IconComponent className="h-5 w-5 text-gray-600 group-hover:text-yellow-600" />
-                                      </div>
-                                      <div className="flex-1 min-w-0">
-                                        <div className="text-base font-medium text-gray-900">{service.name}</div>
-                                        <div className="text-sm text-gray-500">{service.description}</div>
-                                      </div>
-                                      <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-yellow-500 group-hover:translate-x-1 transition-all duration-200 flex-shrink-0" />
-                                    </Link>
-                                  )
-                                })}
+                              <div
+                                className={`absolute top-full left-0 mt-2 w-[640px] bg-white rounded-2xl shadow-2xl border border-gray-100 transition-all duration-200 ${servicesOpen ? "opacity-100 visible translate-y-0" : "opacity-0 invisible translate-y-2"
+                                  }`}
+                                style={{ zIndex: 9999 }}
+                              >
+                                <div className="p-4">
+                                  <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+                                    Our Services
+                                  </div>
+                                  <div className="max-h-80 overflow-y-auto apple-scrollbar">
+                                    <div className="grid grid-cols-2 gap-2 pr-1">
+                                      {serviceItems.map((service) => {
+                                        const IconComponent = service.icon
+                                        return (
+                                          <Link
+                                            key={service.name}
+                                            href={service.href}
+                                            className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors duration-200 group"
+                                            onClick={() => setServicesOpen(false)}
+                                          >
+                                            <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center group-hover:bg-yellow-100 transition-colors duration-200 flex-shrink-0">
+                                              <IconComponent className="h-4 w-4 text-gray-600 group-hover:text-yellow-600" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                              <div className="text-sm font-medium text-gray-900 truncate">{service.name}</div>
+                                              <div className="text-xs text-gray-500 truncate">{service.description}</div>
+                                            </div>
+                                          </Link>
+                                        )
+                                      })}
+                                    </div>
+                                  </div>
+                                </div>
                               </div>
+
                             </div>
                           </div>
                         </div>

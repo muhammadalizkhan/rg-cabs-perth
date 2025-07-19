@@ -13,7 +13,6 @@ import Footer from "@/components/footer/footer"
 export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      <Navbar />
       <Hero />
       <Services />
       <BookACap />
@@ -21,7 +20,6 @@ export default function Home() {
       <ContactUS />
       <SecurePayment />
       <FAQs />
-      <Footer />
     </div>
   )
 }
