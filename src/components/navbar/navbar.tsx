@@ -20,12 +20,14 @@ import {
 import Link from "next/link"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation"
+
 
 const navigationItems = [
   { name: "Home", href: "/" },
   { name: "About", href: "/about" },
   { name: "Services", href: "/services", hasDropdown: true },
-  { name: "Booking", href: "/booking" },
+  { name: "Booking", href: "/BookNow" },
   { name: "Insights", href: "/insights", description: "FAQs & Help Center" },
   { name: "Contact", href: "/contact" },
 ]
@@ -54,6 +56,8 @@ const serviceItems = [
 ]
 
 export default function Navbar() {
+  const router = useRouter()
+
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [servicesOpen, setServicesOpen] = useState(false)
@@ -235,9 +239,13 @@ export default function Navbar() {
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                 <span className="text-gray-700 font-medium whitespace-nowrap">24/7 Available</span>
               </div>
-              <Button className="bg-black hover:bg-gray-800 text-white px-6 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-105 whitespace-nowrap">
-                Book Now
-              </Button>
+              <Button
+  className="bg-black hover:bg-gray-800 text-white px-6 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-105 whitespace-nowrap"
+  onClick={() => router.push("/BookNow")}
+>
+  Book Now
+</Button>
+
             </div>
             <button
               onClick={() => setIsOpen(true)}
@@ -398,15 +406,13 @@ export default function Navbar() {
             <div className="px-6 py-4 border-t border-gray-100">
               <div className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Quick Actions</div>
               <div className="grid grid-cols-2 gap-4">
-                <button
-                  onClick={() => setIsOpen(false)}
-                  className="flex flex-col items-center p-4 bg-yellow-50 rounded-2xl hover:bg-yellow-100 transition-colors duration-200 group"
-                >
-                  <div className="w-12 h-12 bg-yellow-400 rounded-xl flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-200">
-                    <Car className="h-6 w-6 text-black" />
-                  </div>
-                  <span className="text-sm font-medium text-gray-900">Book Now</span>
-                </button>
+              <Button
+  className="bg-black hover:bg-gray-800 text-white px-6 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-105 whitespace-nowrap"
+  onClick={() => router.push("/BookNow")}
+>
+  Book Now
+</Button>
+
 
                 <button
                   onClick={() => setIsOpen(false)}
