@@ -30,17 +30,15 @@ export default function Hero() {
   }, [])
 
   return (
-    <section className="relative bg-gradient-to-br from-[#f8f9fa] via-[#f3f3f3] to-[#e9ecef] overflow-hidden">
-      {/* Background decorative elements */}
+    <section className="relative overflow-hidden">
       <div className="absolute top-20 right-10 w-72 h-72 bg-yellow-400/5 rounded-full blur-3xl"></div>
       <div className="absolute bottom-20 left-10 w-96 h-96 bg-gray-900/5 rounded-full blur-3xl"></div>
       <div className="absolute top-1/2 right-1/4 w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
       <div className="absolute top-1/3 right-1/3 w-1 h-1 bg-gray-400 rounded-full"></div>
       <div className="absolute bottom-1/3 left-1/4 w-1.5 h-1.5 bg-yellow-500 rounded-full animate-bounce"></div>
 
-      <div className="relative max-w-7xl mx-auto px-6 lg:px-8 py-20 lg:py-28">
+      <div className="relative max-w-7xl mx-auto px-4 lg:px-6 py-8 lg:py-12">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Left Content */}
           <div className="space-y-8">
             <div className="space-y-6">
               <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-gray-200 shadow-sm">
@@ -86,7 +84,7 @@ export default function Hero() {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-8">
+            {/* <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-8">
               <div className="bg-white/60 backdrop-blur-sm p-6 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="flex text-yellow-500">
@@ -114,7 +112,7 @@ export default function Hero() {
                 <div className="text-2xl font-bold text-gray-900">15+</div>
                 <div className="text-sm text-gray-600">Cities</div>
               </div>
-            </div>
+            </div> */}
           </div>
 
           {/* Right Content - Animated City Showcase */}
@@ -150,11 +148,10 @@ export default function Hero() {
                     {cities.slice(0, 6).map((city, index) => (
                       <div
                         key={city.name}
-                        className={`relative p-3 rounded-xl transition-all duration-500 cursor-pointer ${
-                          index === currentCity
+                        className={`relative p-3 rounded-xl transition-all duration-500 cursor-pointer ${index === currentCity
                             ? "bg-white shadow-lg scale-105 border-2 border-yellow-400"
                             : "bg-gray-50 hover:bg-gray-100 hover:scale-102"
-                        }`}
+                          }`}
                         style={{ transitionDelay: `${index * 50}ms` }}
                       >
                         <div className={`w-3 h-3 rounded-full mb-2 bg-gradient-to-r ${city.color}`}></div>
@@ -183,9 +180,8 @@ export default function Hero() {
                     {cities.map((_, index) => (
                       <div
                         key={index}
-                        className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                          index === currentCity ? "bg-yellow-400 w-6" : "bg-gray-300"
-                        }`}
+                        className={`w-2 h-2 rounded-full transition-all duration-300 ${index === currentCity ? "bg-yellow-400 w-6" : "bg-gray-300"
+                          }`}
                       ></div>
                     ))}
                   </div>

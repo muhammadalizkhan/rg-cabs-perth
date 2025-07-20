@@ -33,6 +33,12 @@ const navigationItems = [
 ]
 
 const serviceItems = [
+  {
+    name: "Airport Transfers Perth",
+    href: "/AirportTransfersPerth",
+    icon: Plane,
+    description: "Airport pickup and drop-off",
+  },
   { name: "Corporate Transfer", href: "/Corporate", icon: Users, description: "Professional business travel" },
   { name: "Perth Taxi Van", href: "/PerthTaxiVan", icon: Car, description: "Spacious group transportation" },
   { name: "FIFO Transfer", href: "/FIFOTransfer", icon: Plane, description: "Fly-in fly-out services" },
@@ -47,12 +53,7 @@ const serviceItems = [
   { name: "Parcel Delivery", href: "/ParcelDelivery", icon: Package, description: "Package and courier service" },
   { name: "Tours/Day Trips", href: "/ToursandTrips", icon: MapPin, description: "Sightseeing and excursions" },
   { name: "Baby Capsules", href: "/BabyCapsules", icon: Baby, description: "Child-safe transportation" },
-  {
-    name: "Airport Transfers Perth",
-    href: "/AirportTransfersPerth",
-    icon: Plane,
-    description: "Airport pickup and drop-off",
-  },
+  
 ]
 
 export default function Navbar() {
@@ -119,7 +120,7 @@ export default function Navbar() {
             <div className="flex items-center space-x-8">
               <span className="flex items-center gap-2">
                 <Phone className="h-4 w-4 text-yellow-400" />
-                +61 2 1234 5678
+                +61 4352 8728 7
               </span>
               <span className="text-gray-300">Available 24/7 Australia Wide</span>
             </div>
@@ -135,30 +136,22 @@ export default function Navbar() {
       >
         <div className="mx-auto max-w-7xl px-6">
           <div className="flex h-16 items-center justify-between">
-            <Link href="/" className="flex items-center space-x-4 group flex-shrink-0">
-              <div className="relative">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600 shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
-                  <div className="relative">
-                    <span className="text-xl font-black text-black tracking-tight">RG</span>
-                    <div className="absolute -top-1 -right-1 w-2 h-2 bg-black rounded-full opacity-60"></div>
-                  </div>
-                </div>
-              </div>
-              <div className="flex flex-col">
-                <div className="flex items-baseline space-x-1">
-                  <span className="text-2xl font-black text-gray-900 tracking-tight group-hover:text-black transition-colors">
-                    RG
-                  </span>
-                  <span className="text-2xl font-light text-gray-700 tracking-wide group-hover:text-gray-900 transition-colors">
-                    Cab
-                  </span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="h-px w-6 bg-gradient-to-r from-yellow-400 to-transparent"></div>
-                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-[0.15em]">Premium Rides</span>
-                </div>
-              </div>
-            </Link>
+         <Link href="/" className="flex items-center gap-4 group flex-shrink-0">
+ 
+  <div className="flex flex-col leading-tight">
+    <div className="flex items-baseline">
+      <span className="text-2xl font-extrabold text-gray-900 group-hover:text-black transition-colors">RG</span>
+      <span>-</span>
+                <span className="text-2xl font-extrabold text-yellow-500 group-hover:text-black transition-colors">Cabs</span>
+
+    </div>
+    <div className="flex items-center gap-2">
+      <div className="h-px w-6 bg-gradient-to-r from-yellow-900 to-transparent"></div>
+      <span className="text-[11px] font-semibold text-gray-500 tracking-wider uppercase">Premium Rides</span>
+    </div>
+  </div>
+</Link>
+
             <div className="hidden lg:flex items-center justify-center flex-1 max-w-2xl mx-8">
               <div className="flex items-center space-x-1 xl:space-x-2">
                 {navigationItems.map((item) => (
@@ -393,7 +386,6 @@ export default function Navbar() {
                   Book Now
                 </Button>
 
-
                 <button
                   onClick={() => setIsOpen(false)}
                   className="flex flex-col items-center p-4 bg-green-50 rounded-2xl hover:bg-green-100 transition-colors duration-200 group"
@@ -401,7 +393,7 @@ export default function Navbar() {
                   <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-200">
                     <Phone className="h-6 w-6 text-white" />
                   </div>
-                  <span className="text-sm font-medium text-gray-900">Call Now</span>
+                  <span className="text-sm font-medium text-gray-900"></span>
                 </button>
               </div>
             </div>
