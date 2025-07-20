@@ -240,11 +240,11 @@ export default function Navbar() {
                 <span className="text-gray-700 font-medium whitespace-nowrap">24/7 Available</span>
               </div>
               <Button
-  className="bg-black hover:bg-gray-800 text-white px-6 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-105 whitespace-nowrap"
-  onClick={() => router.push("/BookNow")}
->
-  Book Now
-</Button>
+                className="bg-black hover:bg-gray-800 text-white px-6 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-105 whitespace-nowrap"
+                onClick={() => router.push("/BookNow")}
+              >
+                Book Now
+              </Button>
 
             </div>
             <button
@@ -330,74 +330,54 @@ export default function Navbar() {
                               }`}
                           />
                         </button>
-                        <div
-                          className={`overflow-hidden transition-all duration-300 ${mobileServicesOpen ? "max-h-[600px] opacity-100" : "max-h-0 opacity-0"
-                            }`}
-                        >
-                          <div className="ml-4 mt-2">
-                            <div className="max-h-96 overflow-y-auto apple-scrollbar">
-                              <div
-                                className={`absolute top-full left-0 mt-2 w-[640px] bg-white rounded-2xl shadow-2xl border border-gray-100 transition-all duration-200 ${servicesOpen ? "opacity-100 visible translate-y-0" : "opacity-0 invisible translate-y-2"
-                                  }`}
-                                style={{ zIndex: 9999 }}
-                              >
-                                <div className="p-4">
-                                  <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-                                    Our Services
+                        <div className={`overflow-hidden transition-all duration-300 ${mobileServicesOpen ? "max-h-[800px] opacity-100" : "max-h-0 opacity-0"}`}>
+                          <div className="ml-4 mt-2 space-y-2">
+                            {serviceItems.map((service) => {
+                              const IconComponent = service.icon
+                              return (
+                                <Link
+                                  key={service.name}
+                                  href={service.href}
+                                  onClick={() => {
+                                    setMobileServicesOpen(false)
+                                    setIsOpen(false)
+                                  }}
+                                  className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors duration-200 group"
+                                >
+                                  <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center group-hover:bg-yellow-100 flex-shrink-0">
+                                    <IconComponent className="h-4 w-4 text-gray-600 group-hover:text-yellow-600" />
                                   </div>
-                                  <div className="max-h-80 overflow-y-auto apple-scrollbar">
-                                    <div className="grid grid-cols-2 gap-2 pr-1">
-                                      {serviceItems.map((service) => {
-                                        const IconComponent = service.icon
-                                        return (
-                                          <Link
-                                            key={service.name}
-                                            href={service.href}
-                                            className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors duration-200 group"
-                                            onClick={() => setServicesOpen(false)}
-                                          >
-                                            <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center group-hover:bg-yellow-100 transition-colors duration-200 flex-shrink-0">
-                                              <IconComponent className="h-4 w-4 text-gray-600 group-hover:text-yellow-600" />
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                              <div className="text-sm font-medium text-gray-900 truncate">{service.name}</div>
-                                              <div className="text-xs text-gray-500 truncate">{service.description}</div>
-                                            </div>
-                                          </Link>
-                                        )
-                                      })}
-                                    </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="text-sm font-medium text-gray-900 truncate">{service.name}</div>
+                                    <div className="text-xs text-gray-500 truncate">{service.description}</div>
                                   </div>
-                                </div>
-                              </div>
-
-                            </div>
+                                </Link>
+                              )
+                            })}
                           </div>
                         </div>
+
                       </div>
                     ) : (
-                      <Link
-                        href={item.href}
-                        onClick={() => setIsOpen(false)}
-                        className={`flex items-center justify-between p-4 rounded-2xl hover:bg-gray-50 transition-all duration-300 group ${isOpen ? "animate-in slide-in-from-bottom" : ""
-                          }`}
-                        style={{
-                          animationDelay: `${index * 100}ms`,
-                          animationFillMode: "both",
-                        }}
-                      >
-                        <div>
-                          <div className="text-2xl font-semibold text-gray-900 group-hover:text-black">{item.name}</div>
-                          <div className="text-sm text-gray-500 mt-1">
-                            {item.name === "Home" && "Welcome to RG Cab"}
-                            {item.name === "About" && "Our story & mission"}
-                            {item.name === "Booking" && "Reserve your ride"}
-                            {item.name === "Insights" && "FAQs & Help Center"}
-                            {item.name === "Contact" && "Get in touch"}
+                      <Link href={item.href} passHref legacyBehavior>
+                        <a
+                          onClick={() => setIsOpen(false)}
+                          className="flex items-center justify-between p-4 rounded-2xl hover:bg-gray-50 transition-all duration-300 group"
+                        >
+                          <div>
+                            <div className="text-2xl font-semibold text-gray-900 group-hover:text-black">{item.name}</div>
+                            <div className="text-sm text-gray-500 mt-1">
+                              {item.name === "Home" && "Welcome to RG Cab"}
+                              {item.name === "About" && "Our story & mission"}
+                              {item.name === "Booking" && "Reserve your ride"}
+                              {item.name === "Insights" && "FAQs & Help Center"}
+                              {item.name === "Contact" && "Get in touch"}
+                            </div>
                           </div>
-                        </div>
-                        <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-yellow-500 group-hover:translate-x-2 transition-all duration-300" />
+                          <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-yellow-500 group-hover:translate-x-2 transition-all duration-300" />
+                        </a>
                       </Link>
+
                     )}
                   </div>
                 ))}
@@ -406,12 +386,12 @@ export default function Navbar() {
             <div className="px-6 py-4 border-t border-gray-100">
               <div className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Quick Actions</div>
               <div className="grid grid-cols-2 gap-4">
-              <Button
-  className="bg-black hover:bg-gray-800 text-white px-6 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-105 whitespace-nowrap"
-  onClick={() => router.push("/BookNow")}
->
-  Book Now
-</Button>
+                <Button
+                  className="bg-black hover:bg-gray-800 text-white px-6 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-105 whitespace-nowrap"
+                  onClick={() => router.push("/BookNow")}
+                >
+                  Book Now
+                </Button>
 
 
                 <button
@@ -436,7 +416,7 @@ export default function Navbar() {
             </Button>
             <div className="text-center">
               <div className="text-sm text-gray-600">Trusted by 50,000+ customers</div>
-              <div className="text-xs text-gray-500 mt-1">Available in 50+ cities across Australia</div>
+              <div className="text-xs text-gray-500 mt-1">24/7 Available in Perth</div>
             </div>
           </div>
         </div>
