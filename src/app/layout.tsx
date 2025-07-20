@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     description: "Safe and affordable cab service in Perth with airport pickup, baby seat cabs, and more.",
   },
   icons: {
-    icon: "/favicon.ico",
+    icon: "/favicon.icon",
   },
 };
 

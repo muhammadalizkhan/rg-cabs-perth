@@ -7,7 +7,6 @@ import AboutUS from "@/components/aboutus/aboutus"
 import ContactUS from "@/components/contactUs/contactUs"
 import SecurePayment from "@/components/securePayment/securePayment"
 import FAQs from "@/components/faqs/faqs"
-import Footer from "@/components/footer/footer"
 
 
 export default function Home() {

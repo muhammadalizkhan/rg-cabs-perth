@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://rgcabsperth.com.au
+
+# Sitemaps
+Sitemap: https://rgcabsperth.com.au/sitemap.xml
