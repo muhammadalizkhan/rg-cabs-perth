@@ -65,7 +65,6 @@ export default function ContactUs() {
     <section className="bg-white py-8">
       <div className="max-w-6xl mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Contact Information */}
           <div className="space-y-8">
             <div>
               <h3 className="text-2xl font-bold text-black mb-6">Contact Information</h3>
@@ -76,7 +75,7 @@ export default function ContactUs() {
                   </div>
                   <div>
                     <h4 className="font-semibold text-black mb-1">Phone</h4>
-                    <p className="text-gray-700">(08) 1234 5678</p>
+                    <p className="text-gray-700">(61) 4352 8728 7</p>
                     <p className="text-sm text-gray-600 mt-1">Available 24/7</p>
                   </div>
                 </div>
@@ -87,7 +86,7 @@ export default function ContactUs() {
                   </div>
                   <div>
                     <h4 className="font-semibold text-black mb-1">Email</h4>
-                    <p className="text-gray-700">info@perthtransfers.com.au</p>
+                    <p className="text-gray-700">rgcabsperth@gmail.com</p>
                     <p className="text-sm text-gray-600 mt-1">We'll respond within 2 hours</p>
                   </div>
                 </div>
@@ -117,7 +116,6 @@ export default function ContactUs() {
             </div>
           </div>
 
-          {/* Contact Form */}
           <div className="bg-white border border-gray-200 rounded-2xl p-8 shadow-lg">
             <h3 className="text-2xl font-bold text-black mb-6">Send Us a Message</h3>
 
@@ -166,6 +164,7 @@ export default function ContactUs() {
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-yellow-500 focus:outline-none transition-all duration-200 text-black bg-white"
                 >
                   <option value="">Select a service</option>
+                  <option value="airport-transfer">Custom Service</option>
                   <option value="airport-transfer">Airport Transfer</option>
                   <option value="corporate">Corporate Transfer</option>
                   <option value="taxi-van">Perth Taxi Van</option>

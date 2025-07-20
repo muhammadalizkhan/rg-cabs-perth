@@ -4,7 +4,6 @@ export default function AboutUs() {
   return (
     <section className="bg-white py-20 lg:py-28">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        {/* Header */}
         <div className="max-w-3xl mx-auto text-center mb-16">
           <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
             About <span className="text-yellow-500">RG Cab</span>
@@ -15,9 +14,7 @@ export default function AboutUs() {
           </p>
         </div>
 
-        {/* Main Stats */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center mb-20">
-          {/* Left Content */}
           <div>
             <div className="mb-8">
               <div className="text-6xl lg:text-7xl font-bold text-gray-900 mb-2">200+</div>
@@ -47,7 +44,6 @@ export default function AboutUs() {
             </div>
           </div>
 
-          {/* Right Stats Grid */}
           <div className="grid grid-cols-2 gap-8">
             <div className="text-center p-6 bg-gray-50 rounded-2xl">
               <Users className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
@@ -73,15 +69,6 @@ export default function AboutUs() {
               <div className="text-gray-600">Available</div>
             </div>
           </div>
-        </div>
-
-        {/* Mission Statement */}
-        <div className="max-w-4xl mx-auto text-center bg-gray-50 rounded-3xl p-12">
-          <h3 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-6">Our Mission</h3>
-          <p className="text-lg text-gray-600 leading-relaxed">
-            To provide Australia with the most reliable, safe, and professional taxi service. Our network of experienced
-            drivers and premium vehicles ensures every journey is comfortable, punctual, and secure.
-          </p>
         </div>
       </div>
     </section>

@@ -5,7 +5,6 @@ export async function POST(req: NextRequest) {
   try {
     const { name, email, phone, subject, message } = await req.json()
 
-    // Validate required fields
     if (!name || !email || !message) {
       return NextResponse.json(
         { error: "Missing required fields: name, email, and message are required" },
@@ -13,13 +12,11 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Validate environment variables
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
       console.error("Missing email configuration")
       return NextResponse.json({ error: "Email service not configured" }, { status: 500 })
     }
 
-    // Create transporter
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -28,10 +25,8 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    // Verify transporter configuration
     await transporter.verify()
 
-    // Email to business
     const businessMailOptions = {
       from: process.env.EMAIL_USER,
       to: process.env.EMAIL_USER,
@@ -63,15 +58,14 @@ export async function POST(req: NextRequest) {
       `,
     }
 
-    // Auto-reply to customer
     const customerMailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
-      subject: "Thank you for contacting Perth Transfers",
+      subject: "Thank you for contacting RG Cabs Perth Transfers",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background: linear-gradient(135deg, #f59e0b, #f97316); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-            <h1 style="color: white; margin: 0; font-size: 28px;">Perth Transfers</h1>
+            <h1 style="color: white; margin: 0; font-size: 28px;">RG Cabs Perth Transfers</h1>
             <p style="color: white; margin: 10px 0 0 0; opacity: 0.9;">Premium Transportation Services</p>
           </div>
           
@@ -90,14 +84,14 @@ export async function POST(req: NextRequest) {
             
             <div style="background-color: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
               <h3 style="color: #333; margin-top: 0;">Need Immediate Assistance?</h3>
-              <p style="margin: 10px 0;"><strong>📞 Phone:</strong> (08) 1234 5678 - Available 24/7</p>
-              <p style="margin: 10px 0;"><strong>📧 Email:</strong> info@perthtransfers.com.au</p>
-              <p style="margin: 10px 0;"><strong>🌐 Website:</strong> www.perthtransfers.com.au</p>
+              <p style="margin: 10px 0;"><strong>📞 Phone:</strong> +61435287287 - Available 24/7</p>
+              <p style="margin: 10px 0;"><strong>📧 Email:</strong> rgcabsperth@gmail.comu</p>
+              <p style="margin: 10px 0;"><strong>🌐 Website:</strong> www.rgcabsperth.com.au</p>
             </div>
             
             <div style="text-align: center; margin: 30px 0;">
               <a href="tel:+61812345678" style="background-color: #f59e0b; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
-                Call Now: (08) 1234 5678
+                Call Now: +61435287287
               </a>
             </div>
             
@@ -110,7 +104,6 @@ export async function POST(req: NextRequest) {
       `,
     }
 
-    // Send both emails
     await Promise.all([transporter.sendMail(businessMailOptions), transporter.sendMail(customerMailOptions)])
 
     return NextResponse.json(
@@ -123,7 +116,6 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("Email sending error:", error)
 
-    // Return different error messages based on the error type
     if (error instanceof Error) {
       if (error.message.includes("Invalid login")) {
         return NextResponse.json({ error: "Email authentication failed" }, { status: 500 })

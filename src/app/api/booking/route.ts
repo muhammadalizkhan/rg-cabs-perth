@@ -18,18 +18,15 @@ export async function POST(req: NextRequest) {
       specialRequests,
     } = bookingData
 
-    // Validate required fields
     if (!pickup || !destination || !date || !time || !vehicleType || !firstName || !lastName || !email || !phone) {
       return NextResponse.json({ error: "Missing required booking fields." }, { status: 400 })
     }
 
-    // Validate environment variables
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
       console.error("Missing email configuration for booking service.")
       return NextResponse.json({ error: "Email service not configured for bookings." }, { status: 500 })
     }
 
-    // Create transporter
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -38,10 +35,8 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    // Verify transporter configuration
     await transporter.verify()
 
-    // Format date for email
     const formattedDate = new Date(date).toLocaleDateString("en-AU", {
       weekday: "long",
       year: "numeric",
@@ -49,16 +44,15 @@ export async function POST(req: NextRequest) {
       day: "numeric",
     })
 
-    // Email to business
     const businessMailOptions = {
       from: process.env.EMAIL_USER,
-      to: process.env.EMAIL_USER, // Send to your business email
+      to: process.env.EMAIL_USER,
       subject: `New Booking Request - ${firstName} ${lastName} (${vehicleType})`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 8px; overflow: hidden;">
           <div style="background: linear-gradient(135deg, #f59e0b, #f97316); padding: 25px; text-align: center;">
             <h2 style="color: white; margin: 0; font-size: 24px;">New Booking Request</h2>
-            <p style="color: white; margin: 5px 0 0 0; opacity: 0.9;">Perth Transfers</p>
+            <p style="color: white; margin: 5px 0 0 0; opacity: 0.9;">RgCabs Perth Transfers</p>
           </div>
           
           <div style="padding: 25px; background-color: #ffffff;">
@@ -75,14 +69,13 @@ export async function POST(req: NextRequest) {
             <p style="margin-bottom: 10px;"><strong>Email:</strong> ${email}</p>
             <p style="margin-bottom: 20px;"><strong>Phone:</strong> ${phone}</p>
 
-            ${
-              specialRequests
-                ? `
+            ${specialRequests
+          ? `
             <h3 style="color: #333; border-bottom: 1px solid #eee; padding-bottom: 10px;">Special Requests:</h3>
             <p style="line-height: 1.6; color: #555;">${specialRequests.replace(/\n/g, "<br>")}</p>
             `
-                : ""
-            }
+          : ""
+        }
           </div>
           
           <div style="background-color: #f9f9f9; padding: 20px; text-align: center; font-size: 12px; color: #666; border-top: 1px solid #eee;">
@@ -93,11 +86,10 @@ export async function POST(req: NextRequest) {
       `,
     }
 
-    // Auto-reply to customer
     const customerMailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
-      subject: "Your Perth Transfers Booking Request Confirmation",
+      subject: "Your RG Cabs Perth Transfers Booking Request Confirmation",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 8px; overflow: hidden;">
           <div style="background: linear-gradient(135deg, #f59e0b, #f97316); padding: 25px; text-align: center;">
@@ -109,7 +101,7 @@ export async function POST(req: NextRequest) {
             <h2 style="color: #333; margin-top: 0;">Hi ${firstName}, your booking request is confirmed!</h2>
             
             <p style="color: #555; line-height: 1.6;">
-              Thank you for choosing Perth Transfers. We've received your booking request and will review it shortly.
+              Thank you for choosing RGCab. We've received your booking request and will review it shortly.
               You will receive a final confirmation or a call from us if more details are needed.
             </p>
             
@@ -126,8 +118,8 @@ export async function POST(req: NextRequest) {
             
             <div style="background-color: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
               <h3 style="color: #333; margin-top: 0;">Need to make changes or have questions?</h3>
-              <p style="margin: 10px 0;"><strong>📞 Phone:</strong> (08) 1234 5678 - Available 24/7</p>
-              <p style="margin: 10px 0;"><strong>📧 Email:</strong> info@perthtransfers.com.au</p>
+              <p style="margin: 10px 0;"><strong>📞 Phone:</strong> +61435287287 - Available 24/7</p>
+              <p style="margin: 10px 0;"><strong>📧 Email:</strong> rgcabsperth@gmail.com</p>
             </div>
             
             <div style="text-align: center; margin: 30px 0;">
@@ -145,7 +137,6 @@ export async function POST(req: NextRequest) {
       `,
     }
 
-    // Send both emails
     await Promise.all([transporter.sendMail(businessMailOptions), transporter.sendMail(customerMailOptions)])
 
     return NextResponse.json(

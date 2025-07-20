@@ -17,6 +17,8 @@ import {
   Baby,
   Accessibility,
 } from "lucide-react"
+import { useRouter } from 'next/navigation'
+
 
 const services = [
   {
@@ -142,6 +144,8 @@ const services = [
 ]
 
 export default function Services() {
+    const router = useRouter()
+
   return (
     <section className="relative bg-gradient-to-b from-[#f8f9fa] to-white py-20 lg:py-28 overflow-hidden">
       <div className="absolute top-20 left-10 w-64 h-64 bg-yellow-400/5 rounded-full blur-3xl"></div>
@@ -262,10 +266,13 @@ export default function Services() {
                 requirements.
               </p>
 
-              <button className="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black px-8 py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group">
-                Get Custom Quote
-                <ArrowRight className="ml-2 h-5 w-5 inline group-hover:translate-x-1 transition-transform duration-300" />
-              </button>
+            <button
+              onClick={() => router.push('/contact')}
+              className="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black px-8 py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group"
+            >
+              Get Custom Quote
+              <ArrowRight className="ml-2 h-5 w-5 inline group-hover:translate-x-1 transition-transform duration-300" />
+            </button>
             </div>
           </div>
         </div>
