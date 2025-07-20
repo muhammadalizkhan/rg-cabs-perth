@@ -26,9 +26,9 @@ import { useRouter } from "next/navigation"
 const navigationItems = [
   { name: "Home", href: "/" },
   { name: "About", href: "/about" },
-  { name: "Services", href: "/services", hasDropdown: true },
+  { name: "Services", href: "/AllServices", hasDropdown: true },
   { name: "Booking", href: "/BookNow" },
-  { name: "Insights", href: "/insights", description: "FAQs & Help Center" },
+  { name: "Insights", href: "/Insights", description: "FAQs & Help Center" },
   { name: "Contact", href: "/contact" },
 ]
 

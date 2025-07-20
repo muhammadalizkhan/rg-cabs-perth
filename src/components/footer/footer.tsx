@@ -26,28 +26,27 @@ import { Button } from "@/components/ui/button"
 const quickLinks = [
   { name: "Home", href: "/" },
   { name: "About Us", href: "/about" },
-  { name: "Services", href: "/services" },
-  { name: "Booking", href: "/booking" },
+  { name: "Services", href: "/AllServices" },
+  { name: "Booking", href: "/BookNow" },
   { name: "Contact", href: "/contact" },
-  { name: "FAQ", href: "/faq" },
+  { name: "FAQ", href: "/Insights" },
 ]
 
 const services = [
-  { name: "Airport Transfer", href: "/services/airport" },
-  { name: "City Rides", href: "/services/city" },
-  { name: "Corporate Travel", href: "/services/corporate" },
-  { name: "Wedding Transport", href: "/services/wedding" },
-  { name: "Tour Services", href: "/services/tours" },
-  { name: "Emergency Rides", href: "/services/emergency" },
+  { name: "Parcel Delivery", href: "/ParcelDelivery" },
+  { name: "ToursandTrips", href: "/ToursandTrips" },
+  { name: "Baby Capsules", href: "/BabyCapsules" },
+  { name: "Wheelchair Transfers", href: "/WheelchairTransfers" },
+  { name: "Corporate Travel", href: "/Corporate" },
 ]
 
 const cities = [
-  { name: "Sydney", href: "/cities/sydney" },
-  { name: "Melbourne", href: "/cities/melbourne" },
-  { name: "Brisbane", href: "/cities/brisbane" },
-  { name: "Perth", href: "/cities/perth" },
-  { name: "Adelaide", href: "/cities/adelaide" },
-  { name: "Gold Coast", href: "/cities/gold-coast" },
+    { name: "Airport Transfer", href: "/AirportTransfersPerth" },
+  { name: "Perth Taxi Van", href: "/PerthTaxiVan"},
+  { name: "FIFO Transfer", href: "/FIFOTransfer"},
+  { name: "Perth Taxi Van", href: "/PerthTaxiVan"},
+  { name: "Social Events", href: "/SocialEvent"},
+  { name: "Special Occasion", href: "/SpecialEvent"},
 ]
 
 const legalLinks = [
@@ -113,13 +112,11 @@ export default function Footer() {
               </div>
             </div>
 
-            {/* Description */}
             <p className="text-gray-400 leading-relaxed max-w-md">
-              Australia's most trusted premium taxi service with 200+ professional drivers serving 15+ cities
+              Australia's most trusted premium taxi service with 200+ professional drivers serving Perth and allow Custom Request for all cities
               nationwide. Safe, reliable, and comfortable transportation 24/7.
             </p>
 
-            {/* Key Stats */}
             <div className="grid grid-cols-2 gap-6">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-yellow-400/20 rounded-lg flex items-center justify-center">
@@ -145,11 +142,11 @@ export default function Footer() {
             <div className="space-y-4">
               <div className="flex items-center gap-3">
                 <Phone className="h-5 w-5 text-yellow-400" />
-                <span className="text-gray-300">+61 2 1234 5678</span>
+                <span className="text-gray-300">+61435287287</span>
               </div>
               <div className="flex items-center gap-3">
                 <Mail className="h-5 w-5 text-yellow-400" />
-                <span className="text-gray-300">support@rgcab.com.au</span>
+                <span className="text-gray-300">rgcabsperth@gmail.com</span>
               </div>
               <div className="flex items-center gap-3">
                 <MapPin className="h-5 w-5 text-yellow-400" />
@@ -162,7 +159,6 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Quick Links */}
           <div>
             <h4 className="text-lg font-semibold mb-6">Quick Links</h4>
             <ul className="space-y-3">
@@ -180,7 +176,6 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Services */}
           <div>
             <h4 className="text-lg font-semibold mb-6">Our Services</h4>
             <ul className="space-y-3">
@@ -198,9 +193,8 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Cities */}
           <div>
-            <h4 className="text-lg font-semibold mb-6">Service Areas</h4>
+            <h4 className="text-lg font-semibold mb-6">Popular Service</h4>
             <ul className="space-y-3">
               {cities.map((city) => (
                 <li key={city.name}>
@@ -216,17 +210,16 @@ export default function Footer() {
             </ul>
             <div className="mt-6">
               <Link
-                href="/cities"
+                href="/AllServices"
                 className="text-yellow-400 hover:text-yellow-300 font-medium transition-colors duration-200 flex items-center group"
               >
-                View all cities
+                View all Services
                 <ArrowRight className="ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
               </Link>
             </div>
           </div>
         </div>
 
-        {/* Features Section */}
         <div className="mt-16 pt-12 border-t border-gray-800">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="flex items-center gap-4">
@@ -254,8 +247,8 @@ export default function Footer() {
                 <Smartphone className="h-6 w-6 text-purple-400" />
               </div>
               <div>
-                <h5 className="font-semibold">Easy Booking</h5>
-                <p className="text-sm text-gray-400">App & website</p>
+                <h5 className="font-semibold">Custom Service</h5>
+                <p className="text-sm text-gray-400">Request for Custom Servcies</p>
               </div>
             </div>
 
@@ -264,19 +257,17 @@ export default function Footer() {
                 <Award className="h-6 w-6 text-yellow-400" />
               </div>
               <div>
-                <h5 className="font-semibold">Award Winning</h5>
-                <p className="text-sm text-gray-400">Best service 2024</p>
+                <h5 className="font-semibold">Secured Payments</h5>
+                <p className="text-sm text-gray-400">All methods accepted</p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Bottom Footer */}
       <div className="border-t border-gray-800">
         <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8">
           <div className="flex flex-col lg:flex-row justify-between items-center gap-6">
-            {/* Copyright */}
             <div className="flex flex-col sm:flex-row items-center gap-4 text-sm text-gray-400">
               <span>© 2024 RG Cab. All rights reserved.</span>
               <div className="flex items-center gap-4">
@@ -291,7 +282,6 @@ export default function Footer() {
               </div>
             </div>
 
-            {/* Social Links */}
             <div className="flex items-center gap-4">
               <span className="text-sm text-gray-400 mr-2">Follow us:</span>
               {socialLinks.map((social) => {
@@ -311,7 +301,6 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Additional Legal Links */}
           <div className="mt-6 pt-6 border-t border-gray-800">
             <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-500">
               {legalLinks.slice(3).map((link, index) => (
@@ -325,7 +314,6 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Certifications */}
           <div className="mt-8 pt-6 border-t border-gray-800">
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
               <div className="flex items-center gap-6 text-xs text-gray-500">
@@ -342,7 +330,7 @@ export default function Footer() {
                   <span>Australia Wide Service</span>
                 </div>
               </div>
-              <div className="text-xs text-gray-500">ABN: 12 345 678 901 • Transport License: TL123456</div>
+              <div className="text-xs text-gray-500">ABN: 51 234 453 080 • Transport License: TL123456</div>
             </div>
           </div>
         </div>
