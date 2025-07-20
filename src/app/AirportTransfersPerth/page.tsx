@@ -23,6 +23,9 @@ import {
   Phone,
   Mail,
 } from "lucide-react"
+import { useRouter } from 'next/navigation'
+import Link from "next/link"
+import Customservice from "@/components/customservice/customservice"
 
 const pricingData = [
   { suburb: "Alkimos", distance: "52 km", cost: "$110 - $125", popular: false },
@@ -109,6 +112,8 @@ const testimonials = [
 
 export default function PerthAirportTransfers() {
   const [searchTerm, setSearchTerm] = useState("")
+  const router = useRouter()
+
 
   const filteredPricing = pricingData.filter((item) => item.suburb.toLowerCase().includes(searchTerm.toLowerCase()))
 
@@ -130,20 +135,22 @@ export default function PerthAirportTransfers() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-8">
-              <Button
-                size="lg"
-                className="bg-black hover:bg-gray-800 text-white px-6 py-3 text-base font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all"
+              <button
+                onClick={() => router.push('/BookNow')}
+                className="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black px-8 py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group"
               >
-                Book Your Transfer
-                <ArrowRight className="ml-2 w-4 h-4" />
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-2 border-black text-black hover:bg-black hover:text-white px-6 py-3 text-base font-semibold rounded-lg bg-transparent"
-              >
-                View Pricing Below
-              </Button>
+                Book Now
+                <ArrowRight className="ml-2 h-5 w-5 inline group-hover:translate-x-1 transition-transform duration-300" />
+              </button>
+             <Link href="tel:+61812345678" passHref>
+      <Button
+        size="lg"
+        variant="outline"
+        className="border-2 border-yellow text-black hover:bg-black hover:text-white px-6 py-3 text-base rounded-lg bg-white"
+      >
+        Call: (61) 812345678
+      </Button>
+    </Link>
             </div>
 
             <div className="grid grid-cols-4 gap-4 max-w-2xl mx-auto">
@@ -168,61 +175,6 @@ export default function PerthAirportTransfers() {
         </div>
       </section>
 
-      <section className="py-12 bg-white">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-black mb-3">Why Choose Perth Transfers?</h2>
-            <p className="text-lg text-gray-700">Professional service you can trust</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              {
-                icon: Clock,
-                title: "24/7 Availability",
-                description:
-                  "Round-the-clock service for all your travel needs, including early morning and late-night flights.",
-              },
-              {
-                icon: Shield,
-                title: "Licensed & Insured",
-                description: "All drivers are professionally licensed with comprehensive insurance coverage.",
-              },
-              {
-                icon: Smartphone,
-                title: "Easy Booking",
-                description: "Book instantly online with real-time tracking and instant confirmations.",
-              },
-              {
-                icon: Users,
-                title: "1-12 Passengers",
-                description: "From solo travelers to large groups, we have the perfect vehicle for you.",
-              },
-              {
-                icon: CreditCard,
-                title: "Fixed Pricing",
-                description: "No hidden fees, no surge pricing. Transparent rates with multiple payment options.",
-              },
-              {
-                icon: Baby,
-                title: "Family Friendly",
-                description: "Child seats available upon request. We cater to families with special care.",
-              },
-            ].map((feature, index) => (
-              <Card key={index} className="bg-white hover:shadow-lg transition-all duration-300 border border-gray-200">
-                <CardContent className="p-6">
-                  <div className="w-10 h-10 rounded-lg bg-yellow-400 flex items-center justify-center mb-4">
-                    <feature.icon className="w-5 h-5 text-black" />
-                  </div>
-                  <h3 className="text-lg font-bold text-black mb-2">{feature.title}</h3>
-                  <p className="text-gray-700 text-sm leading-relaxed">{feature.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
       <section className="bg-white py-12 bg-gray-50">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-8">
@@ -240,14 +192,14 @@ export default function PerthAirportTransfers() {
               },
               {
                 step: "02",
-                title: "Track Driver",
-                description: "Real-time updates and driver location",
+                title: "Enjoy Ride",
+                description: "Relax as we take you to your destination",
                 icon: MapPin,
               },
               {
                 step: "03",
-                title: "Enjoy Ride",
-                description: "Relax as we take you to your destination",
+                title: "Pay Your Way",
+                description: "We accept all popular payment methods",
                 icon: CheckCircle,
               },
             ].map((step, index) => (
@@ -326,6 +278,65 @@ export default function PerthAirportTransfers() {
         </div>
       </section>
 
+      <section>
+        <Customservice />
+      </section>
+
+      <section className="py-12 bg-white">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-black mb-3">Why Choose Perth Transfers?</h2>
+            <p className="text-lg text-gray-700">Professional service you can trust</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              {
+                icon: Clock,
+                title: "24/7 Availability",
+                description:
+                  "Round-the-clock service for all your travel needs, including early morning and late-night flights.",
+              },
+              {
+                icon: Shield,
+                title: "Licensed & Insured",
+                description: "All drivers are professionally licensed with comprehensive insurance coverage.",
+              },
+              {
+                icon: Smartphone,
+                title: "Easy Booking",
+                description: "Book instantly online with real-time tracking and instant confirmations.",
+              },
+              {
+                icon: Users,
+                title: "1-12 Passengers",
+                description: "From solo travelers to large groups, we have the perfect vehicle for you.",
+              },
+              {
+                icon: CreditCard,
+                title: "Fixed Pricing",
+                description: "No hidden fees, no surge pricing. Transparent rates with multiple payment options.",
+              },
+              {
+                icon: Baby,
+                title: "Family Friendly",
+                description: "Child seats available upon request. We cater to families with special care.",
+              },
+            ].map((feature, index) => (
+              <Card key={index} className="bg-white hover:shadow-lg transition-all duration-300 border border-gray-200">
+                <CardContent className="p-6">
+                  <div className="w-10 h-10 rounded-lg bg-yellow-400 flex items-center justify-center mb-4">
+                    <feature.icon className="w-5 h-5 text-black" />
+                  </div>
+                  <h3 className="text-lg font-bold text-black mb-2">{feature.title}</h3>
+                  <p className="text-gray-700 text-sm leading-relaxed">{feature.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="bg-white py-12 bg-gray-50">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-8">
@@ -373,19 +384,22 @@ export default function PerthAirportTransfers() {
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Button
+                onClick={() => router.push('/BookNow')}
               size="lg"
               className="bg-black text-white hover:bg-gray-800 px-6 py-3 text-base rounded-lg font-semibold"
             >
               Book Transfer Now
               <ArrowRight className="ml-2 w-4 h-4" />
             </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="border-2 border-black text-black hover:bg-black hover:text-white px-6 py-3 text-base rounded-lg bg-transparent"
-            >
-              Call: (08) 1234 5678
-            </Button>
+            <Link href="tel:+61812345678" passHref>
+      <Button
+        size="lg"
+        variant="outline"
+        className="border-2 border-black text-black hover:bg-black hover:text-white px-6 py-3 text-base rounded-lg bg-transparent"
+      >
+        Call: (61) 812345678
+      </Button>
+    </Link>
           </div>
         </div>
       </section>
