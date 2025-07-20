@@ -144,7 +144,7 @@ const services = [
 ]
 
 export default function Services() {
-    const router = useRouter()
+  const router = useRouter()
 
   return (
     <section className="relative bg-gradient-to-b from-[#f8f9fa] to-white py-20 lg:py-28 overflow-hidden">
@@ -179,7 +179,7 @@ export default function Services() {
             return (
               <div
                 key={service.id}
-                className="group relative bg-white/70 backdrop-blur-xl rounded-3xl p-6 border border-white/20 shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105 hover:-translate-y-2"
+                className="group relative bg-white/70 backdrop-blur-xl rounded-3xl p-6 border border-black/15 shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105 hover:-translate-y-2"
                 style={{
                   animationDelay: `${index * 100}ms`,
                 }}
@@ -266,13 +266,24 @@ export default function Services() {
                 requirements.
               </p>
 
-            <button
-              onClick={() => router.push('/contact')}
-              className="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black px-8 py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group"
-            >
-              Get Custom Quote
-              <ArrowRight className="ml-2 h-5 w-5 inline group-hover:translate-x-1 transition-transform duration-300" />
-            </button>
+              <div className="flex flex-col items-center space-y-3 mt-6">
+                <button
+                  onClick={() => router.push('/contact')}
+                  className="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black px-8 py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group"
+                >
+                  Get Custom Quote
+                  <ArrowRight className="ml-2 h-5 w-5 inline group-hover:translate-x-1 transition-transform duration-300" />
+                </button>
+
+                <Link
+                  href="/AllServices"
+                  className="text-yellow-500 hover:text-yellow-600 font-medium transition-colors duration-200 flex items-center group"
+                >
+                  View all Services
+                  <ArrowRight className="ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
+                </Link>
+              </div>
+
             </div>
           </div>
         </div>

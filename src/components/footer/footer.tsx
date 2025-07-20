@@ -330,7 +330,7 @@ export default function Footer() {
                   <span>Australia Wide Service</span>
                 </div>
               </div>
-              <div className="text-xs text-gray-500">ABN: 51 234 453 080 • Transport License: TL123456</div>
+              <div className="text-xs text-gray-500">ABN: 51 234 453 080 • Transport License: 8055631</div>
             </div>
           </div>
         </div>
