@@ -141,16 +141,21 @@ export default function Footer() {
             {/* Contact Info */}
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <Phone className="h-5 w-5 text-yellow-400" />
-                <span className="text-gray-300">+61435287287</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Mail className="h-5 w-5 text-yellow-400" />
-                <span className="text-gray-300">rgcabsperth@gmail.com</span>
-              </div>
+  <Phone className="h-5 w-5 text-yellow-400" />
+  <a href="tel:+61435287287" className="text-gray-300 hover:text-yellow-400 transition-colors duration-200">
+    +61 435 287 287
+  </a>
+</div>
+<div className="flex items-center gap-3">
+  <Mail className="h-5 w-5 text-yellow-400" />
+  <a href="mailto:rgcabsperth@gmail.com" className="text-gray-300 hover:text-yellow-400 transition-colors duration-200">
+    rgcabsperth@gmail.com
+  </a>
+</div>
+
               <div className="flex items-center gap-3">
                 <MapPin className="h-5 w-5 text-yellow-400" />
-                <span className="text-gray-300">123 Collins Street, Melbourne VIC 3000</span>
+                <span className="text-gray-300">580 Hay Street Perth Australlia</span>
               </div>
               <div className="flex items-center gap-3">
                 <Clock className="h-5 w-5 text-yellow-400" />
