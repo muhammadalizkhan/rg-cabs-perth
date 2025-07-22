@@ -2,29 +2,31 @@
 
 import { useEffect, useRef, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { MapPin, Navigation, Clock, Route } from "lucide-react"
+import { MapPin, Navigation, Clock, Route, DollarSign } from "lucide-react"
+import type { LocationDetails, Stop, RouteInfo } from "@/types/location"
+import { LocationServices } from "@/utils/location-services"
 
-interface RouteMapProps {
-  pickup: string
-  destination: string
-  stops: Array<{ id: string; location: string }>
+
+interface EnhancedRouteMapProps {
+  pickup: LocationDetails | null
+  destination: LocationDetails | null
+  stops: Stop[]
+  vehicleType?: string
+  onRouteCalculated?: (routeInfo: RouteInfo | null) => void
 }
 
-
-
-export function RouteMap({ pickup, destination, stops }: RouteMapProps) {
+export function EnhancedRouteMap({
+  pickup,
+  destination,
+  stops,
+  vehicleType = "sedan",
+  onRouteCalculated,
+}: EnhancedRouteMapProps) {
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<google.maps.Map | null>(null)
   const directionsServiceRef = useRef<google.maps.DirectionsService | null>(null)
   const directionsRendererRef = useRef<google.maps.DirectionsRenderer | null>(null)
-
-  const [routeInfo, setRouteInfo] = useState<{
-    distance: string
-    duration: string
-    estimatedFare: string
-  } | null>(null)
-
+  const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -33,8 +35,8 @@ export function RouteMap({ pickup, destination, stops }: RouteMapProps) {
     if (!mapRef.current || !window.google) return
 
     try {
-      mapInstanceRef.current = new google.maps.Map(mapRef.current, {
-        zoom: 12,
+      mapInstanceRef.current = new window.google.maps.Map(mapRef.current, {
+        zoom: 11,
         center: { lat: -31.9505, lng: 115.8605 }, // Perth center
         mapTypeControl: false,
         streetViewControl: false,
@@ -48,17 +50,31 @@ export function RouteMap({ pickup, destination, stops }: RouteMapProps) {
         ],
       })
 
-      directionsServiceRef.current = new google.maps.DirectionsService()
-      directionsRendererRef.current = new google.maps.DirectionsRenderer({
+      directionsServiceRef.current = new window.google.maps.DirectionsService()
+      directionsRendererRef.current = new window.google.maps.DirectionsRenderer({
         suppressMarkers: false,
         polylineOptions: {
           strokeColor: "#14b8a6",
           strokeWeight: 4,
           strokeOpacity: 0.8,
         },
+        markerOptions: {
+          icon: {
+            url:
+              "data:image/svg+xml;charset=UTF-8," +
+              encodeURIComponent(`
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="16" cy="16" r="12" fill="#14b8a6" stroke="white" strokeWidth="4"/>
+                <circle cx="16" cy="16" r="4" fill="white"/>
+              </svg>
+            `),
+          },
+        },
       })
 
-      directionsRendererRef.current.setMap(mapInstanceRef.current)
+      if (directionsRendererRef.current) {
+        directionsRendererRef.current.setMap(mapInstanceRef.current)
+      }
     } catch (error) {
       console.error("Error initializing map:", error)
       setError("Failed to initialize map")
@@ -68,27 +84,30 @@ export function RouteMap({ pickup, destination, stops }: RouteMapProps) {
   // Calculate route when locations change
   useEffect(() => {
     if (!pickup || !destination || !directionsServiceRef.current || !directionsRendererRef.current) {
+      setRouteInfo(null)
+      onRouteCalculated?.(null)
       return
     }
 
     setIsLoading(true)
     setError(null)
 
-    const waypoints = stops
-      .filter((stop) => stop.location.trim())
+    const validStops = stops
+      .filter((stop) => stop.location && stop.isValid)
       .map((stop) => ({
-        location: stop.location,
+        location: new window.google.maps.LatLng(stop.location!.coordinates.lat, stop.location!.coordinates.lng),
         stopover: true,
       }))
 
-    const request: google.maps.DirectionsRequest = {
-      origin: pickup,
-      destination: destination,
-      waypoints: waypoints,
-      travelMode: google.maps.TravelMode.DRIVING,
-      unitSystem: google.maps.UnitSystem.METRIC,
+    const request = {
+      origin: new window.google.maps.LatLng(pickup.coordinates.lat, pickup.coordinates.lng),
+      destination: new window.google.maps.LatLng(destination.coordinates.lat, destination.coordinates.lng),
+      waypoints: validStops,
+      travelMode: window.google.maps.TravelMode.DRIVING,
+      unitSystem: window.google.maps.UnitSystem.METRIC,
       avoidHighways: false,
       avoidTolls: false,
+      optimizeWaypoints: true,
     }
 
     directionsServiceRef.current.route(request, (result, status) => {
@@ -98,9 +117,6 @@ export function RouteMap({ pickup, destination, stops }: RouteMapProps) {
         directionsRendererRef.current?.setDirections(result)
 
         const route = result.routes[0]
-        const leg = route.legs[0]
-
-        // Calculate total distance and duration for all legs
         let totalDistance = 0
         let totalDuration = 0
 
@@ -109,25 +125,30 @@ export function RouteMap({ pickup, destination, stops }: RouteMapProps) {
           totalDuration += leg.duration?.value || 0
         })
 
-        const distanceKm = (totalDistance / 1000).toFixed(1)
+        const distanceKm = totalDistance / 1000
         const durationMin = Math.ceil(totalDuration / 60)
+        const estimatedFare = LocationServices.calculateFare(distanceKm, durationMin, vehicleType)
 
-        // Simple fare estimation (base rate + distance rate)
-        const baseFare = 5.5 // Base fare in AUD
-        const perKmRate = 2.2 // Per km rate in AUD
-        const estimatedFare = (baseFare + Number.parseFloat(distanceKm) * perKmRate).toFixed(2)
-
-        setRouteInfo({
-          distance: `${distanceKm} km`,
+        const routeInfoData: RouteInfo = {
+          distance: `${distanceKm.toFixed(1)} km`,
           duration: `${durationMin} min`,
-          estimatedFare: `$${estimatedFare} AUD`,
-        })
+          estimatedFare: `$${estimatedFare.toFixed(2)} AUD`,
+          totalDistanceKm: distanceKm,
+          totalDurationMin: durationMin,
+        }
+
+        setRouteInfo(routeInfoData)
+        onRouteCalculated?.(routeInfoData)
       } else {
-        setError("Could not calculate route. Please check your locations.")
-        console.error("Directions request failed:", status)
+        const errorMessage =
+          status === "ZERO_RESULTS"
+            ? "No route found between the selected locations"
+            : "Could not calculate route. Please check your locations."
+        setError(errorMessage)
+        onRouteCalculated?.(null)
       }
     })
-  }, [pickup, destination, stops])
+  }, [pickup, destination, stops, vehicleType, onRouteCalculated])
 
   if (!pickup || !destination) {
     return (
@@ -151,12 +172,12 @@ export function RouteMap({ pickup, destination, stops }: RouteMapProps) {
       <CardContent className="space-y-4">
         {/* Map Container */}
         <div className="relative">
-          <div ref={mapRef} className="w-full h-64 rounded-lg border-2 border-gray-200 bg-gray-100" />
+          <div ref={mapRef} className="w-full h-80 rounded-lg border-2 border-gray-200 bg-gray-100" />
           {isLoading && (
             <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center rounded-lg">
               <div className="text-center">
                 <div className="w-8 h-8 border-2 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-                <p className="text-sm font-medium text-gray-700">Calculating route...</p>
+                <p className="text-sm font-medium text-gray-700">Calculating optimal route...</p>
               </div>
             </div>
           )}
@@ -169,47 +190,48 @@ export function RouteMap({ pickup, destination, stops }: RouteMapProps) {
 
         {/* Route Information */}
         {routeInfo && (
-          <div className="grid grid-cols-3 gap-4">
-            <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
-              <Navigation className="h-5 w-5 text-blue-600 mx-auto mb-1" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <Navigation className="h-6 w-6 text-blue-600 mx-auto mb-2" />
               <p className="text-sm font-medium text-blue-800">Distance</p>
-              <p className="text-lg font-bold text-blue-900">{routeInfo.distance}</p>
+              <p className="text-xl font-bold text-blue-900">{routeInfo.distance}</p>
             </div>
-            <div className="text-center p-3 bg-green-50 rounded-lg border border-green-200">
-              <Clock className="h-5 w-5 text-green-600 mx-auto mb-1" />
+            <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
+              <Clock className="h-6 w-6 text-green-600 mx-auto mb-2" />
               <p className="text-sm font-medium text-green-800">Duration</p>
-              <p className="text-lg font-bold text-green-900">{routeInfo.duration}</p>
+              <p className="text-xl font-bold text-green-900">{routeInfo.duration}</p>
             </div>
-            <div className="text-center p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-              <Badge className="h-5 w-5 text-yellow-600 mx-auto mb-1 bg-transparent border-0 p-0">💰</Badge>
+            <div className="text-center p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+              <DollarSign className="h-6 w-6 text-yellow-600 mx-auto mb-2" />
               <p className="text-sm font-medium text-yellow-800">Est. Fare</p>
-              <p className="text-lg font-bold text-yellow-900">{routeInfo.estimatedFare}</p>
+              <p className="text-xl font-bold text-yellow-900">{routeInfo.estimatedFare}</p>
             </div>
           </div>
         )}
 
         {/* Route Details */}
-        <div className="space-y-2 text-sm">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-teal-500 rounded-full"></div>
-            <span className="font-medium text-gray-700">From:</span>
-            <span className="text-gray-900 font-semibold">{pickup}</span>
+        <div className="space-y-3 text-sm bg-gray-50 p-4 rounded-lg">
+          <h4 className="font-semibold text-gray-900 mb-3">Route Details:</h4>
+          <div className="flex items-center gap-3">
+            <div className="w-4 h-4 bg-green-500 rounded-full flex-shrink-0"></div>
+            <span className="font-medium text-gray-700">Pickup:</span>
+            <span className="text-gray-900 font-semibold flex-1">{pickup.address}</span>
           </div>
 
           {stops
-            .filter((stop) => stop.location.trim())
+            .filter((stop) => stop.location && stop.isValid)
             .map((stop, index) => (
-              <div key={stop.id} className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+              <div key={stop.id} className="flex items-center gap-3">
+                <div className="w-4 h-4 bg-orange-500 rounded-full flex-shrink-0"></div>
                 <span className="font-medium text-gray-700">Stop {index + 1}:</span>
-                <span className="text-gray-900 font-semibold">{stop.location}</span>
+                <span className="text-gray-900 font-semibold flex-1">{stop.location!.address}</span>
               </div>
             ))}
 
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-            <span className="font-medium text-gray-700">To:</span>
-            <span className="text-gray-900 font-semibold">{destination}</span>
+          <div className="flex items-center gap-3">
+            <div className="w-4 h-4 bg-red-500 rounded-full flex-shrink-0"></div>
+            <span className="font-medium text-gray-700">Destination:</span>
+            <span className="text-gray-900 font-semibold flex-1">{destination.address}</span>
           </div>
         </div>
       </CardContent>

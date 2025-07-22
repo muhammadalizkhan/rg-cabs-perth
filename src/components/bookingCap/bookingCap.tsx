@@ -1,856 +1,583 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import {
-  Calendar,
-  Clock,
-  ArrowRight,
-  ArrowLeft,
-  Check,
-  Star,
-  Shield,
-  Phone,
-  Mail,
-  User,
-  Zap,
-  LocateFixed,
-  Plus,
-  X,
-  CreditCard,
-  Wallet,
-  Building,
-  Car,
-  Users,
-  Users2,
-  UsersRound,
-  Edit3,
-} from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Progress } from "@/components/ui/progress"
 import { GoogleMapsAutocomplete } from "@/components/googleMapsAutocomplete/googleMapsAutocomplete"
-import { RouteMap } from "@/components//routeMap/routeMap"
+import { RouteMap } from "@/components/routeMap/routeMap"
+import { LocationStops } from "./location-stops"
+import { MapPin, Navigation, Calendar, Clock, Users, Car, Phone, Mail, User, Plus, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
+import { toast } from "@/hooks/use-toast"
 
-// Passenger options with proper Lucide icons
-const passengerOptions = [
-  {
-    id: "1-2",
-    label: "1-2 Passengers",
-    value: "1-2",
-    icon: User,
-    description: "Perfect for individuals or couples",
-  },
-  {
-    id: "1-3",
-    label: "1-3 Passengers",
-    value: "1-3",
-    icon: Users,
-    description: "Ideal for small groups",
-  },
-  {
-    id: "1-4",
-    label: "1-4 Passengers",
-    value: "1-4",
-    icon: Users2,
-    description: "Great for families",
-  },
-  {
-    id: "1,2,3,4",
-    label: "1, 2, 3, 4 Passengers",
-    value: "1,2,3,4",
-    icon: UsersRound,
-    description: "Flexible group size",
-  },
-  {
-    id: "custom",
-    label: "Custom",
-    value: "custom",
-    icon: Edit3,
-    description: "Specify your own number",
-  },
-]
-
-// Payment methods
-const paymentMethods = [
-  {
-    id: "paying-driver",
-    name: "Cash to Driver",
-    description: "Pay the driver directly in cash",
-    icon: User,
-    color: "bg-gradient-to-br from-green-500 to-green-600",
-  },
-  {
-    id: "ptts-card",
-    name: "PTTS Card",
-    description: "Public transport card payment",
-    icon: CreditCard,
-    color: "bg-gradient-to-br from-blue-500 to-blue-600",
-  },
-  {
-    id: "cabcharge",
-    name: "Cabcharge",
-    description: "Cabcharge account payment",
-    icon: Building,
-    color: "bg-gradient-to-br from-yellow-500 to-yellow-600",
-  },
-  {
-    id: "credit-card",
-    name: "Credit Card",
-    description: "Pay with credit/debit card",
-    icon: CreditCard,
-    color: "bg-gradient-to-br from-purple-500 to-purple-600",
-  },
-  {
-    id: "other",
-    name: "Other",
-    description: "Alternative payment method",
-    icon: Wallet,
-    color: "bg-gradient-to-br from-gray-500 to-gray-600",
-  },
-]
+interface LocationData {
+  address: string
+  coordinates: {
+    lat: number
+    lng: number
+  }
+  placeId?: string
+}
 
 interface Stop {
   id: string
   location: string
+  coordinates?: {
+    lat: number
+    lng: number
+  }
+  placeId?: string
 }
 
-export default function BookingSystem() {
-  const [currentStep, setCurrentStep] = useState(1)
-  const [bookingData, setBookingData] = useState({
-    pickup: "",
-    destination: "",
-    stops: [] as Stop[],
+interface BookingFormData {
+  pickup: LocationData | null
+  destination: LocationData | null
+  stops: Stop[]
+  date: string
+  time: string
+  vehicleType: string
+  passengers: string
+  firstName: string
+  lastName: string
+  email: string
+  phone: string
+  specialRequests: string
+}
+
+export default function BookingCap() {
+  const [formData, setFormData] = useState<BookingFormData>({
+    pickup: null,
+    destination: null,
+    stops: [],
     date: "",
     time: "",
-    passengers: "",
-    customPassengers: "",
-    paymentMethod: "",
+    vehicleType: "",
+    passengers: "1",
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
-    specialRequests: "",
+    specialRequests: ""
   })
 
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [bookingSuccess, setBookingSuccess] = useState(false)
-  const [bookingError, setBookingError] = useState<string | null>(null)
-  const [geolocationError, setGeolocationError] = useState<string | null>(null)
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [currentLocation, setCurrentLocation] = useState<LocationData | null>(null)
+  const [isGettingLocation, setIsGettingLocation] = useState(false)
 
-  // Get current date and time
-  const getCurrentDate = () => {
-    const today = new Date()
-    return today.toISOString().split("T")[0]
-  }
-
-  const getCurrentTime = () => {
-    const now = new Date()
-    const hours = now.getHours().toString().padStart(2, "0")
-    const minutes = now.getMinutes().toString().padStart(2, "0")
-    return `${hours}:${minutes}`
-  }
-
-  // Initialize with current date/time
-  useEffect(() => {
-    setBookingData((prev) => ({
-      ...prev,
-      date: getCurrentDate(),
-      time: getCurrentTime(),
-    }))
-  }, [])
-
-  const handleStopChange = (stopId: string, value: string) => {
-    setBookingData((prev) => ({
-      ...prev,
-      stops: prev.stops.map((stop) => (stop.id === stopId ? { ...stop, location: value } : stop)),
-    }))
-  }
-
-  const addStop = () => {
-    const newStop: Stop = {
-      id: Date.now().toString(),
-      location: "",
+  // Get current location
+  const getCurrentLocation = async () => {
+    if (!navigator.geolocation) {
+      toast({
+        title: "Location not supported",
+        description: "Your browser doesn't support location services",
+        variant: "destructive"
+      })
+      return
     }
-    setBookingData((prev) => ({
-      ...prev,
-      stops: [...prev.stops, newStop],
-    }))
-  }
 
-  const removeStop = (stopId: string) => {
-    setBookingData((prev) => ({
-      ...prev,
-      stops: prev.stops.filter((stop) => stop.id !== stopId),
-    }))
-  }
+    setIsGettingLocation(true)
+    
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords
+        
+        try {
+          // Reverse geocode to get address
+          const geocoder = new google.maps.Geocoder()
+          const response = await geocoder.geocode({
+            location: { lat: latitude, lng: longitude }
+          })
 
-  const handleUseCurrentLocation = () => {
-    setGeolocationError(null)
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords
-
-          // Use Google Maps Geocoding API to get address from coordinates
-          if (window.google && window.google.maps) {
-            const geocoder = new window.google.maps.Geocoder() // Updated line
-            const latlng = { lat: latitude, lng: longitude }
-
-            geocoder.geocode({ location: latlng }, (results: { formatted_address: any }[], status: string) => {
-              if (status === "OK" && results && results[0]) {
-                setBookingData((prev) => ({ ...prev, pickup: results[0].formatted_address }))
-              } else {
-                const locationText = `Current Location (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`
-                setBookingData((prev) => ({ ...prev, pickup: locationText }))
-              }
+          if (response.results[0]) {
+            const location: LocationData = {
+              address: response.results[0].formatted_address,
+              coordinates: { lat: latitude, lng: longitude },
+              placeId: response.results[0].place_id
+            }
+            setCurrentLocation(location)
+            toast({
+              title: "Location found",
+              description: "Current location detected successfully"
             })
-          } else {
-            const locationText = `Current Location (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`
-            setBookingData((prev) => ({ ...prev, pickup: locationText }))
           }
-        },
-        (error) => {
-          let errorMessage = "Unable to retrieve your current location. Please enter it manually."
-          if (error.code === error.PERMISSION_DENIED) {
-            errorMessage = "Location access denied. Please enable location permissions in your browser."
-          }
-          setGeolocationError(errorMessage)
-        },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
-      )
-    } else {
-      setGeolocationError("Geolocation is not supported by your browser.")
+        } catch (error) {
+          console.error("Geocoding error:", error)
+          toast({
+            title: "Location error",
+            description: "Could not get address for current location",
+            variant: "destructive"
+          })
+        } finally {
+          setIsGettingLocation(false)
+        }
+      },
+      (error) => {
+        setIsGettingLocation(false)
+        let message = "Could not get your location"
+        
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            message = "Location access denied. Please enable location permissions."
+            break
+          case error.POSITION_UNAVAILABLE:
+            message = "Location information unavailable"
+            break
+          case error.TIMEOUT:
+            message = "Location request timed out"
+            break
+        }
+        
+        toast({
+          title: "Location error",
+          description: message,
+          variant: "destructive"
+        })
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000
+      }
+    )
+  }
+
+  // Use current location for pickup
+  const useCurrentLocationForPickup = () => {
+    if (currentLocation) {
+      setFormData(prev => ({ ...prev, pickup: currentLocation }))
+      toast({
+        title: "Location set",
+        description: "Current location set as pickup"
+      })
     }
   }
 
-  const nextStep = () => {
-    if (currentStep < 4) setCurrentStep(currentStep + 1)
+  // Handle location changes
+  const handleLocationChange = (
+    field: 'pickup' | 'destination',
+    address: string,
+    placeDetails?: google.maps.places.PlaceResult
+  ) => {
+    const locationData: LocationData = {
+      address,
+      coordinates: placeDetails?.geometry?.location ? {
+        lat: placeDetails.geometry.location.lat(),
+        lng: placeDetails.geometry.location.lng()
+      } : { lat: 0, lng: 0 },
+      placeId: placeDetails?.place_id
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      [field]: locationData
+    }))
   }
 
-  const prevStep = () => {
-    if (currentStep > 1) setCurrentStep(currentStep - 1)
+  // Handle stops changes
+  const handleStopsChange = (stops: Stop[]) => {
+    setFormData(prev => ({ ...prev, stops }))
   }
 
-  // Validation for each step
-  const canProceedStep1 = bookingData.pickup && bookingData.destination && bookingData.date && bookingData.time
-  const canProceedStep2 =
-    bookingData.passengers && (bookingData.passengers !== "custom" || bookingData.customPassengers)
-  const canProceedStep3 = bookingData.paymentMethod
-  const canProceedStep4 = bookingData.firstName && bookingData.lastName && bookingData.email && bookingData.phone
+  // Handle form submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!formData.pickup || !formData.destination) {
+      toast({
+        title: "Missing locations",
+        description: "Please select both pickup and destination locations",
+        variant: "destructive"
+      })
+      return
+    }
 
-  const selectedPayment = paymentMethods.find((p) => p.id === bookingData.paymentMethod)
+    if (!formData.date || !formData.time || !formData.vehicleType) {
+      toast({
+        title: "Missing details",
+        description: "Please fill in all required booking details",
+        variant: "destructive"
+      })
+      return
+    }
 
-  // Calculate progress
-  const progress = (currentStep / 4) * 100
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone) {
+      toast({
+        title: "Missing contact info",
+        description: "Please fill in all contact information",
+        variant: "destructive"
+      })
+      return
+    }
 
-  // Handle booking submission
-  const handleSubmitBooking = async () => {
     setIsSubmitting(true)
-    setBookingSuccess(false)
-    setBookingError(null)
+    setSubmitStatus('idle')
 
     try {
-      const res = await fetch("/api/booking", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(bookingData),
+      const bookingData = {
+        pickup: formData.pickup.address,
+        pickupCoordinates: formData.pickup.coordinates,
+        destination: formData.destination.address,
+        destinationCoordinates: formData.destination.coordinates,
+        stops: formData.stops.map(stop => ({
+          location: stop.location,
+          coordinates: stop.coordinates
+        })),
+        date: formData.date,
+        time: formData.time,
+        vehicleType: formData.vehicleType,
+        passengers: formData.passengers,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        specialRequests: formData.specialRequests
+      }
+
+      const response = await fetch('/api/booking', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(bookingData)
       })
 
-      const data = await res.json()
+      const result = await response.json()
 
-      if (res.ok) {
-        setBookingSuccess(true)
-        setBookingData({
-          pickup: "",
-          destination: "",
+      if (response.ok) {
+        setSubmitStatus('success')
+        toast({
+          title: "Booking submitted!",
+          description: "We'll contact you shortly to confirm your booking"
+        })
+        
+        // Reset form
+        setFormData({
+          pickup: null,
+          destination: null,
           stops: [],
-          date: getCurrentDate(),
-          time: getCurrentTime(),
-          passengers: "",
-          customPassengers: "",
-          paymentMethod: "",
+          date: "",
+          time: "",
+          vehicleType: "",
+          passengers: "1",
           firstName: "",
           lastName: "",
           email: "",
           phone: "",
-          specialRequests: "",
+          specialRequests: ""
         })
-        setCurrentStep(1)
-        setTimeout(() => setBookingSuccess(false), 5000)
       } else {
-        setBookingError(data.error || "Failed to confirm booking. Please try again.")
+        throw new Error(result.error || 'Booking failed')
       }
     } catch (error) {
-      console.error("Booking submission error:", error)
-      setBookingError("Network error occurred. Please check your connection.")
+      setSubmitStatus('error')
+      toast({
+        title: "Booking failed",
+        description: error instanceof Error ? error.message : "Please try again or call us directly",
+        variant: "destructive"
+      })
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  const getMinTime = () => {
-    if (bookingData.date === getCurrentDate()) {
-      return getCurrentTime()
-    }
-    return "00:00"
+  // Get minimum date (today)
+  const getMinDate = () => {
+    const today = new Date()
+    return today.toISOString().split('T')[0]
   }
 
-  const stepTitles = ["Trip Details", "Passengers", "Payment", "Contact Info"]
-
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#f3f3f3" }}>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 bg-black text-white px-6 py-3 rounded-full mb-6 shadow-lg">
-            <Car className="h-5 w-5 text-white" />
-            <span className="text-sm font-semibold text-white">Professional Taxi Service</span>
-          </div>
-          <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4 leading-tight">
-            Book Your <span className="text-teal-500">Ride</span>
-          </h1>
-          <p className="text-xl text-gray-700 max-w-2xl mx-auto leading-relaxed font-medium">
-            Professional drivers, premium vehicles, reliable service across Perth
-          </p>
-        </div>
+    <div className="max-w-7xl mx-auto p-4 space-y-8">
+      <div className="text-center space-y-4">
+        <h1 className="text-4xl font-bold text-gray-900">Book Your Ride</h1>
+        <p className="text-xl text-gray-600">Premium transportation services across Perth</p>
+      </div>
 
-        {/* Progress */}
-        <Card className="mb-8 border-2 border-gray-300 shadow-lg bg-white">
-          <CardContent className="pt-8 pb-6">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center text-sm font-bold">
-                  {currentStep}
+      <div className="grid lg:grid-cols-2 gap-8">
+        {/* Booking Form */}
+        <Card className="border-2 border-gray-300 shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-2xl text-gray-900 flex items-center gap-2">
+              <Car className="h-6 w-6 text-teal-500" />
+              Booking Details
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Current Location Section */}
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-blue-900">Quick Location Access</h3>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={getCurrentLocation}
+                    disabled={isGettingLocation}
+                    className="border-blue-300 text-blue-700 hover:bg-blue-100"
+                  >
+                    {isGettingLocation ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : (
+                      <Navigation className="h-4 w-4 mr-2" />
+                    )}
+                    Get Current Location
+                  </Button>
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-700">Step {currentStep} of 4</p>
-                  <p className="text-lg font-bold text-gray-900">{stepTitles[currentStep - 1]}</p>
+                
+                {currentLocation && (
+                  <div className="space-y-2">
+                    <p className="text-sm text-blue-800">
+                      <strong>Current location:</strong> {currentLocation.address}
+                    </p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={useCurrentLocationForPickup}
+                      className="border-green-300 text-green-700 hover:bg-green-100"
+                    >
+                      <MapPin className="h-4 w-4 mr-2" />
+                      Use as Pickup
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              {/* Pickup Location */}
+              <GoogleMapsAutocomplete
+                label="Pickup Location"
+                value={formData.pickup?.address || ""}
+                onChange={(value, placeDetails) => handleLocationChange('pickup', value, placeDetails)}
+                placeholder="Enter pickup address in Perth"
+                icon={<MapPin className="h-5 w-5 text-teal-500" />}
+                types={['address', 'establishment', 'geocode']}
+              />
+
+              {/* Stops */}
+              <LocationStops
+                stops={formData.stops}
+                onChange={handleStopsChange}
+              />
+
+              {/* Destination Location */}
+              <GoogleMapsAutocomplete
+                label="Destination"
+                value={formData.destination?.address || ""}
+                onChange={(value, placeDetails) => handleLocationChange('destination', value, placeDetails)}
+                placeholder="Enter destination address in Perth"
+                icon={<Navigation className="h-5 w-5 text-red-500" />}
+                types={['address', 'establishment', 'geocode']}
+              />
+
+              {/* Date and Time */}
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <Label className="text-lg font-bold text-gray-900 flex items-center gap-3">
+                    <Calendar className="h-5 w-5 text-teal-500" />
+                    Date
+                  </Label>
+                  <Input
+                    type="date"
+                    value={formData.date}
+                    onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                    min={getMinDate()}
+                    required
+                    className="h-14 text-base font-semibold bg-white border-2 border-gray-400"
+                  />
+                </div>
+                <div className="space-y-3">
+                  <Label className="text-lg font-bold text-gray-900 flex items-center gap-3">
+                    <Clock className="h-5 w-5 text-teal-500" />
+                    Time
+                  </Label>
+                  <Input
+                    type="time"
+                    value={formData.time}
+                    onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
+                    required
+                    className="h-14 text-base font-semibold bg-white border-2 border-gray-400"
+                  />
                 </div>
               </div>
-              <div className="text-right">
-                <p className="text-sm font-semibold text-gray-700">{Math.round(progress)}% Complete</p>
-              </div>
-            </div>
-            <Progress value={progress} className="h-3" />
-          </CardContent>
-        </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Form */}
-          <div className="lg:col-span-2">
-            <Card className="shadow-2xl border-2 border-gray-300 bg-white">
-              <CardContent className="p-8 lg:p-12">
-                {/* Step 1: Trip Details */}
-                {currentStep === 1 && (
-                  <div className="space-y-10">
-                    <div className="text-center">
-                      <h2 className="text-3xl font-bold text-gray-900 mb-4">Where are you going?</h2>
-                      <p className="text-lg text-gray-700 font-medium">Enter your pickup and destination locations</p>
-                    </div>
-
-                    <div className="space-y-8">
-                      {/* Pickup Location */}
-                      <GoogleMapsAutocomplete
-                        label="Pickup Location"
-                        value={bookingData.pickup}
-                        onChange={(value) => setBookingData((prev) => ({ ...prev, pickup: value }))}
-                        placeholder="Enter pickup location"
-                        icon={<div className="w-3 h-3 bg-teal-500 rounded-full"></div>}
-                        types={["establishment", "geocode"]}
-                      />
-
-                      <div className="flex justify-center">
-                        <Button
-                          type="button"
-                          onClick={handleUseCurrentLocation}
-                          variant="outline"
-                          size="lg"
-                          className="bg-teal-50 border-2 border-teal-300 text-teal-700 hover:bg-teal-100 hover:border-teal-400 font-semibold px-6 py-3 h-auto shadow-sm"
-                        >
-                          <LocateFixed className="h-5 w-5 mr-2 text-teal-600" />
-                          <span className="text-teal-700 font-semibold">Use Current Location</span>
-                        </Button>
-                      </div>
-
-                      {geolocationError && (
-                        <Alert className="border-2 border-red-300 bg-red-50">
-                          <AlertDescription className="text-red-800 font-semibold">{geolocationError}</AlertDescription>
-                        </Alert>
-                      )}
-
-                      {/* Stops */}
-                      {bookingData.stops.map((stop, index) => (
-                        <div key={stop.id} className="space-y-3">
-                          <div className="flex gap-3">
-                            <div className="flex-1">
-                              <GoogleMapsAutocomplete
-                                label={`Stop ${index + 1}`}
-                                value={stop.location}
-                                onChange={(value) => handleStopChange(stop.id, value)}
-                                placeholder={`Enter stop ${index + 1} location`}
-                                icon={<div className="w-3 h-3 bg-orange-500 rounded-full"></div>}
-                                types={["establishment", "geocode"]}
-                              />
-                            </div>
-                            <div className="flex items-end">
-                              <Button
-                                type="button"
-                                onClick={() => removeStop(stop.id)}
-                                variant="outline"
-                                size="icon"
-                                className="h-14 w-14 text-red-600 border-2 border-red-300 hover:bg-red-50 hover:border-red-400 bg-white shadow-sm"
-                              >
-                                <X className="h-5 w-5 text-red-600" />
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
+              {/* Vehicle Type and Passengers */}
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <Label className="text-lg font-bold text-gray-900 flex items-center gap-3">
+                    <Car className="h-5 w-5 text-teal-500" />
+                    Vehicle Type
+                  </Label>
+                  <Select value={formData.vehicleType} onValueChange={(value) => setFormData(prev => ({ ...prev, vehicleType: value }))}>
+                    <SelectTrigger className="h-14 text-base font-semibold bg-white border-2 border-gray-400">
+                      <SelectValue placeholder="Select vehicle type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="sedan">Sedan (1-4 passengers)</SelectItem>
+                      <SelectItem value="suv">SUV (1-6 passengers)</SelectItem>
+                      <SelectItem value="van">Van (1-8 passengers)</SelectItem>
+                      <SelectItem value="luxury">Luxury Car (1-4 passengers)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-3">
+                  <Label className="text-lg font-bold text-gray-900 flex items-center gap-3">
+                    <Users className="h-5 w-5 text-teal-500" />
+                    Passengers
+                  </Label>
+                  <Select value={formData.passengers} onValueChange={(value) => setFormData(prev => ({ ...prev, passengers: value }))}>
+                    <SelectTrigger className="h-14 text-base font-semibold bg-white border-2 border-gray-400">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[1,2,3,4,5,6,7,8].map(num => (
+                        <SelectItem key={num} value={num.toString()}>{num} passenger{num > 1 ? 's' : ''}</SelectItem>
                       ))}
-
-                      <Button
-                        type="button"
-                        onClick={addStop}
-                        variant="outline"
-                        size="lg"
-                        className="w-full border-dashed border-2 border-gray-400 hover:border-teal-500 hover:bg-teal-50 text-gray-700 hover:text-teal-700 py-6 bg-white font-semibold shadow-sm"
-                      >
-                        <Plus className="h-5 w-5 mr-2 text-gray-700" />
-                        <span className="text-gray-800 font-semibold">Add Stop</span>
-                      </Button>
-
-                      {/* Destination */}
-                      <GoogleMapsAutocomplete
-                        label="Destination"
-                        value={bookingData.destination}
-                        onChange={(value) => setBookingData((prev) => ({ ...prev, destination: value }))}
-                        placeholder="Enter destination"
-                        icon={<div className="w-3 h-3 bg-red-500 rounded-full"></div>}
-                        types={["establishment", "geocode"]}
-                      />
-
-                      {/* Date and Time */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-3">
-                          <Label className="text-lg font-bold text-gray-900 flex items-center gap-3">
-                            <Calendar className="h-5 w-5 text-blue-500" />
-                            Date
-                          </Label>
-                          <Input
-                            type="date"
-                            value={bookingData.date}
-                            min={getCurrentDate()}
-                            onChange={(e) => setBookingData((prev) => ({ ...prev, date: e.target.value }))}
-                            className="h-14 text-base font-semibold bg-white border-2 border-gray-400 text-gray-900 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 transition-all duration-200 shadow-sm"
-                          />
-                        </div>
-                        <div className="space-y-3">
-                          <Label className="text-lg font-bold text-gray-900 flex items-center gap-3">
-                            <Clock className="h-5 w-5 text-purple-500" />
-                            Time
-                          </Label>
-                          <Input
-                            type="time"
-                            value={bookingData.time}
-                            min={getMinTime()}
-                            onChange={(e) => setBookingData((prev) => ({ ...prev, time: e.target.value }))}
-                            className="h-14 text-base font-semibold bg-white border-2 border-gray-400 text-gray-900 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 transition-all duration-200 shadow-sm"
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-end pt-8">
-                      <Button
-                        type="button"
-                        onClick={nextStep}
-                        disabled={!canProceedStep1}
-                        size="lg"
-                        className="bg-black hover:bg-gray-800 text-white px-10 py-4 text-lg font-bold h-auto shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <span className="text-white font-bold">Continue</span>
-                        <ArrowRight className="ml-2 h-5 w-5 text-white" />
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Step 2: Passenger Selection */}
-                {currentStep === 2 && (
-                  <div className="space-y-10">
-                    <div className="text-center">
-                      <h2 className="text-3xl font-bold text-gray-900 mb-4">How many passengers?</h2>
-                      <p className="text-lg text-gray-700 font-medium">Select the number of passengers for your trip</p>
-                    </div>
-
-                    <div className="space-y-4">
-                      {passengerOptions.map((option) => {
-                        const IconComponent = option.icon
-                        return (
-                          <Card
-                            key={option.id}
-                            className={`cursor-pointer transition-all duration-300 hover:shadow-lg border-2 bg-white ${
-                              bookingData.passengers === option.value
-                                ? "border-teal-500 bg-teal-50 shadow-lg"
-                                : "border-gray-300 hover:border-gray-400"
-                            }`}
-                            onClick={() => setBookingData((prev) => ({ ...prev, passengers: option.value }))}
-                          >
-                            <CardContent className="p-6">
-                              <div className="flex items-center gap-4">
-                                <div
-                                  className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                                    bookingData.passengers === option.value
-                                      ? "border-teal-500 bg-teal-500"
-                                      : "border-gray-400 bg-white"
-                                  }`}
-                                >
-                                  {bookingData.passengers === option.value && <Check className="h-4 w-4 text-white" />}
-                                </div>
-                                <div className="flex items-center gap-4 flex-1">
-                                  <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                                    <IconComponent className="h-6 w-6 text-gray-700" />
-                                  </div>
-                                  <div>
-                                    <span className="font-bold text-lg text-gray-900">{option.label}</span>
-                                    <p className="text-sm text-gray-600 font-medium">{option.description}</p>
-                                  </div>
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        )
-                      })}
-
-                      {bookingData.passengers === "custom" && (
-                        <div className="space-y-3 mt-6">
-                          <Label className="text-lg font-bold text-gray-900">Custom Number of Passengers</Label>
-                          <Input
-                            type="number"
-                            min="1"
-                            max="20"
-                            value={bookingData.customPassengers}
-                            onChange={(e) => setBookingData((prev) => ({ ...prev, customPassengers: e.target.value }))}
-                            placeholder="Enter number of passengers"
-                            className="h-14 text-base font-semibold bg-white border-2 border-gray-400 text-gray-900 placeholder:text-gray-600 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 transition-all duration-200 shadow-sm"
-                          />
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex justify-between pt-8">
-                      <Button
-                        type="button"
-                        onClick={prevStep}
-                        variant="outline"
-                        size="lg"
-                        className="px-10 py-4 text-lg font-bold h-auto border-2 border-gray-400 text-gray-800 hover:bg-gray-100 hover:border-gray-500 bg-white transition-all duration-200 shadow-sm"
-                      >
-                        <ArrowLeft className="mr-2 h-5 w-5 text-gray-800" />
-                        <span className="text-gray-800 font-bold">Back</span>
-                      </Button>
-                      <Button
-                        type="button"
-                        onClick={nextStep}
-                        disabled={!canProceedStep2}
-                        size="lg"
-                        className="bg-black hover:bg-gray-800 text-white px-10 py-4 text-lg font-bold h-auto shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <span className="text-white font-bold">Continue</span>
-                        <ArrowRight className="ml-2 h-5 w-5 text-white" />
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Step 3: Payment Method */}
-                {currentStep === 3 && (
-                  <div className="space-y-10">
-                    <div className="text-center">
-                      <h2 className="text-3xl font-bold text-gray-900 mb-4">Payment Method</h2>
-                      <p className="text-lg text-gray-700 font-medium">Choose how you'd like to pay for your ride</p>
-                      <Badge className="mt-3 px-4 py-2 text-sm bg-gray-200 text-gray-800 border-2 border-gray-300 font-semibold">
-                        Payment is processed after your ride
-                      </Badge>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {paymentMethods.map((method) => {
-                        const IconComponent = method.icon
-                        return (
-                          <Card
-                            key={method.id}
-                            className={`cursor-pointer transition-all duration-300 hover:shadow-lg border-2 bg-white ${
-                              bookingData.paymentMethod === method.id
-                                ? "border-teal-500 bg-teal-50 shadow-lg"
-                                : "border-gray-300 hover:border-gray-400"
-                            }`}
-                            onClick={() => setBookingData((prev) => ({ ...prev, paymentMethod: method.id }))}
-                          >
-                            <CardContent className="p-6">
-                              <div className="flex items-center gap-4">
-                                <div
-                                  className={`w-16 h-16 rounded-xl ${method.color} flex items-center justify-center shadow-md`}
-                                >
-                                  <IconComponent className="h-8 w-8 text-white" />
-                                </div>
-                                <div className="flex-1">
-                                  <h3 className="font-bold text-lg text-gray-900">{method.name}</h3>
-                                  <p className="text-sm text-gray-700 mt-1 font-medium">{method.description}</p>
-                                </div>
-                                {bookingData.paymentMethod === method.id && (
-                                  <Check className="h-6 w-6 text-teal-500 flex-shrink-0" />
-                                )}
-                              </div>
-                            </CardContent>
-                          </Card>
-                        )
-                      })}
-                    </div>
-
-                    <div className="flex justify-between pt-8">
-                      <Button
-                        type="button"
-                        onClick={prevStep}
-                        variant="outline"
-                        size="lg"
-                        className="px-10 py-4 text-lg font-bold h-auto border-2 border-gray-400 text-gray-800 hover:bg-gray-100 hover:border-gray-500 bg-white transition-all duration-200 shadow-sm"
-                      >
-                        <ArrowLeft className="mr-2 h-5 w-5 text-gray-800" />
-                        <span className="text-gray-800 font-bold">Back</span>
-                      </Button>
-                      <Button
-                        type="button"
-                        onClick={nextStep}
-                        disabled={!canProceedStep3}
-                        size="lg"
-                        className="bg-black hover:bg-gray-800 text-white px-10 py-4 text-lg font-bold h-auto shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <span className="text-white font-bold">Continue</span>
-                        <ArrowRight className="ml-2 h-5 w-5 text-white" />
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Step 4: Contact Information */}
-                {currentStep === 4 && (
-                  <div className="space-y-10">
-                    <div className="text-center">
-                      <h2 className="text-3xl font-bold text-gray-900 mb-4">Contact Information</h2>
-                      <p className="text-lg text-gray-700 font-medium">We need your details to confirm the booking</p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-3">
-                        <Label className="text-lg font-bold text-gray-900 flex items-center gap-3">
-                          <User className="h-5 w-5 text-blue-500" />
-                          First Name
-                        </Label>
-                        <Input
-                          type="text"
-                          value={bookingData.firstName}
-                          onChange={(e) => setBookingData((prev) => ({ ...prev, firstName: e.target.value }))}
-                          placeholder="Enter first name"
-                          className="h-14 text-base font-semibold bg-white border-2 border-gray-400 text-gray-900 placeholder:text-gray-600 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 transition-all duration-200 shadow-sm"
-                        />
-                      </div>
-                      <div className="space-y-3">
-                        <Label className="text-lg font-bold text-gray-900 flex items-center gap-3">
-                          <User className="h-5 w-5 text-blue-500" />
-                          Last Name
-                        </Label>
-                        <Input
-                          type="text"
-                          value={bookingData.lastName}
-                          onChange={(e) => setBookingData((prev) => ({ ...prev, lastName: e.target.value }))}
-                          placeholder="Enter last name"
-                          className="h-14 text-base font-semibold bg-white border-2 border-gray-400 text-gray-900 placeholder:text-gray-600 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 transition-all duration-200 shadow-sm"
-                        />
-                      </div>
-                      <div className="space-y-3">
-                        <Label className="text-lg font-bold text-gray-900 flex items-center gap-3">
-                          <Mail className="h-5 w-5 text-green-500" />
-                          Email Address
-                        </Label>
-                        <Input
-                          type="email"
-                          value={bookingData.email}
-                          onChange={(e) => setBookingData((prev) => ({ ...prev, email: e.target.value }))}
-                          placeholder="Enter email address"
-                          className="h-14 text-base font-semibold bg-white border-2 border-gray-400 text-gray-900 placeholder:text-gray-600 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 transition-all duration-200 shadow-sm"
-                        />
-                      </div>
-                      <div className="space-y-3">
-                        <Label className="text-lg font-bold text-gray-900 flex items-center gap-3">
-                          <Phone className="h-5 w-5 text-purple-500" />
-                          Phone Number
-                        </Label>
-                        <Input
-                          type="tel"
-                          value={bookingData.phone}
-                          onChange={(e) => setBookingData((prev) => ({ ...prev, phone: e.target.value }))}
-                          placeholder="Enter phone number"
-                          className="h-14 text-base font-semibold bg-white border-2 border-gray-400 text-gray-900 placeholder:text-gray-600 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 transition-all duration-200 shadow-sm"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      <Label className="text-lg font-bold text-gray-900">Special Requests (Optional)</Label>
-                      <Textarea
-                        value={bookingData.specialRequests}
-                        onChange={(e) => setBookingData((prev) => ({ ...prev, specialRequests: e.target.value }))}
-                        placeholder="Any special requirements or requests..."
-                        rows={4}
-                        className="w-full px-4 py-3 text-base font-semibold bg-white border-2 border-gray-400 text-gray-900 placeholder:text-gray-600 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 transition-all duration-200 resize-none rounded-lg shadow-sm"
-                      />
-                    </div>
-
-                    {/* Booking Summary */}
-                    <Card className="bg-gradient-to-r from-gray-100 to-teal-50 border-2 border-gray-300 shadow-sm">
-                      <CardHeader className="pb-4">
-                        <CardTitle className="text-xl text-gray-900 flex items-center gap-2 font-bold">
-                          <Check className="h-5 w-5 text-teal-500" />
-                          Booking Summary
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-base">
-                          <div>
-                            <span className="text-gray-700 font-semibold">From:</span>
-                            <p className="font-bold text-gray-900 mt-1">{bookingData.pickup}</p>
-                          </div>
-                          {bookingData.stops.length > 0 && (
-                            <div>
-                              <span className="text-gray-700 font-semibold">Stops:</span>
-                              {bookingData.stops.map((stop, index) => (
-                                <p key={stop.id} className="font-bold text-gray-900 mt-1">
-                                  {index + 1}. {stop.location}
-                                </p>
-                              ))}
-                            </div>
-                          )}
-                          <div>
-                            <span className="text-gray-700 font-semibold">To:</span>
-                            <p className="font-bold text-gray-900 mt-1">{bookingData.destination}</p>
-                          </div>
-                          <div>
-                            <span className="text-gray-700 font-semibold">Date & Time:</span>
-                            <p className="font-bold text-gray-900 mt-1">
-                              {new Date(bookingData.date).toLocaleDateString()} at {bookingData.time}
-                            </p>
-                          </div>
-                          <div>
-                            <span className="text-gray-700 font-semibold">Passengers:</span>
-                            <p className="font-bold text-gray-900 mt-1">
-                              {bookingData.passengers === "custom"
-                                ? bookingData.customPassengers
-                                : bookingData.passengers}
-                            </p>
-                          </div>
-                          <div>
-                            <span className="text-gray-700 font-semibold">Payment:</span>
-                            <p className="font-bold text-gray-900 mt-1">{selectedPayment?.name}</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <div className="flex justify-between pt-8">
-                      <Button
-                        type="button"
-                        onClick={prevStep}
-                        variant="outline"
-                        size="lg"
-                        className="px-10 py-4 text-lg font-bold h-auto border-2 border-gray-400 text-gray-800 hover:bg-gray-100 hover:border-gray-500 bg-white transition-all duration-200 shadow-sm"
-                      >
-                        <ArrowLeft className="mr-2 h-5 w-5 text-gray-800" />
-                        <span className="text-gray-800 font-bold">Back</span>
-                      </Button>
-                      <Button
-                        type="button"
-                        onClick={handleSubmitBooking}
-                        disabled={!canProceedStep4 || isSubmitting}
-                        size="lg"
-                        className="bg-teal-500 hover:bg-teal-600 text-white px-10 py-4 text-lg font-bold h-auto shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {isSubmitting ? (
-                          <>
-                            <div className="w-5 h-5 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                            <span className="text-white font-bold">Confirming...</span>
-                          </>
-                        ) : (
-                          <>
-                            <span className="text-white font-bold">Confirm Booking</span>
-                            <Check className="ml-2 h-5 w-5 text-white" />
-                          </>
-                        )}
-                      </Button>
-                    </div>
-
-                    {bookingSuccess && (
-                      <Alert className="border-2 border-green-300 bg-green-50 shadow-sm">
-                        <Check className="h-5 w-5 text-green-600" />
-                        <AlertDescription className="text-green-800 font-bold text-base">
-                          🎉 Booking confirmed! You will receive a confirmation email shortly.
-                        </AlertDescription>
-                      </Alert>
-                    )}
-
-                    {bookingError && (
-                      <Alert className="border-2 border-red-300 bg-red-50 shadow-sm">
-                        <AlertDescription className="text-base text-red-800 font-bold">
-                          ❌ Error: {bookingError}
-                        </AlertDescription>
-                      </Alert>
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Route Map Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-8">
-              <RouteMap pickup={bookingData.pickup} destination={bookingData.destination} stops={bookingData.stops} />
-            </div>
-          </div>
-        </div>
-
-        {/* Trust Indicators */}
-        <Card className="mt-10 border-2 border-gray-300 shadow-lg bg-white">
-          <CardContent className="p-8">
-            <div className="flex items-center justify-center gap-12 text-base flex-wrap">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                  <Shield className="h-6 w-6 text-green-600" />
+                    </SelectContent>
+                  </Select>
                 </div>
-                <span className="font-bold text-gray-900">Fully Insured</span>
               </div>
-              <Separator orientation="vertical" className="h-8 bg-gray-400" />
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
-                  <Star className="h-6 w-6 text-yellow-600 fill-current" />
+
+              {/* Contact Information */}
+              <div className="space-y-4">
+                <h3 className="text-xl font-bold text-gray-900 border-b border-gray-300 pb-2">Contact Information</h3>
+                
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <Label className="text-lg font-bold text-gray-900 flex items-center gap-3">
+                      <User className="h-5 w-5 text-teal-500" />
+                      First Name
+                    </Label>
+                    <Input
+                      type="text"
+                      value={formData.firstName}
+                      onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
+                      placeholder="Enter first name"
+                      required
+                      className="h-14 text-base font-semibold bg-white border-2 border-gray-400"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <Label className="text-lg font-bold text-gray-900 flex items-center gap-3">
+                      <User className="h-5 w-5 text-teal-500" />
+                      Last Name
+                    </Label>
+                    <Input
+                      type="text"
+                      value={formData.lastName}
+                      onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
+                      placeholder="Enter last name"
+                      required
+                      className="h-14 text-base font-semibold bg-white border-2 border-gray-400"
+                    />
+                  </div>
                 </div>
-                <span className="font-bold text-gray-900">4.9/5 Rating</span>
-              </div>
-              <Separator orientation="vertical" className="h-8 bg-gray-400" />
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Zap className="h-6 w-6 text-blue-600" />
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <Label className="text-lg font-bold text-gray-900 flex items-center gap-3">
+                      <Mail className="h-5 w-5 text-teal-500" />
+                      Email
+                    </Label>
+                    <Input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                      placeholder="Enter email address"
+                      required
+                      className="h-14 text-base font-semibold bg-white border-2 border-gray-400"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <Label className="text-lg font-bold text-gray-900 flex items-center gap-3">
+                      <Phone className="h-5 w-5 text-teal-500" />
+                      Phone
+                    </Label>
+                    <Input
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                      placeholder="Enter phone number"
+                      required
+                      className="h-14 text-base font-semibold bg-white border-2 border-gray-400"
+                    />
+                  </div>
                 </div>
-                <span className="font-bold text-gray-900">24/7 Service</span>
               </div>
-            </div>
+
+              {/* Special Requests */}
+              <div className="space-y-3">
+                <Label className="text-lg font-bold text-gray-900">Special Requests (Optional)</Label>
+                <Textarea
+                  value={formData.specialRequests}
+                  onChange={(e) => setFormData(prev => ({ ...prev, specialRequests: e.target.value }))}
+                  placeholder="Any special requirements or requests..."
+                  className="min-h-[100px] text-base bg-white border-2 border-gray-400"
+                />
+              </div>
+
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full h-14 text-lg font-bold bg-teal-600 hover:bg-teal-700 text-white"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                    Submitting Booking...
+                  </>
+                ) : submitStatus === 'success' ? (
+                  <>
+                    <CheckCircle className="h-5 w-5 mr-2" />
+                    Booking Submitted!
+                  </>
+                ) : submitStatus === 'error' ? (
+                  <>
+                    <AlertCircle className="h-5 w-5 mr-2" />
+                    Try Again
+                  </>
+                ) : (
+                  'Book Now'
+                )}
+              </Button>
+            </form>
           </CardContent>
         </Card>
+
+        {/* Route Map */}
+        <div className="space-y-6">
+          <RouteMap
+            pickup={formData.pickup?.address || ""}
+            destination={formData.destination?.address || ""}
+            stops={formData.stops}
+          />
+          
+          {/* Contact Info Card */}
+          <Card className="border-2 border-teal-300 bg-teal-50">
+            <CardContent className="p-6">
+              <h3 className="text-xl font-bold text-teal-900 mb-4">Need Help?</h3>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <Phone className="h-5 w-5 text-teal-600" />
+                  <span className="font-semibold text-teal-800">+61 435 287 287</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Mail className="h-5 w-5 text-teal-600" />
+                  <span className="font-semibold text-teal-800">rgcabsperth@gmail.com</span>
+                </div>
+                <p className="text-sm text-teal-700 mt-4">
+                  Available 24/7 for bookings and support
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   )
