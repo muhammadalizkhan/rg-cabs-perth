@@ -11,22 +11,7 @@ interface RouteMapProps {
   stops: Array<{ id: string; location: string }>
 }
 
-declare global {
-  namespace google {
-    namespace maps {
-      class Map {}
-      class DirectionsService {}
-      class DirectionsRenderer {}
-      interface DirectionsRequest {}
-      enum TravelMode {
-        DRIVING,
-      }
-      enum UnitSystem {
-        METRIC,
-      }
-    }
-  }
-}
+
 
 export function RouteMap({ pickup, destination, stops }: RouteMapProps) {
   const mapRef = useRef<HTMLDivElement>(null)
