@@ -1,11 +1,9 @@
 "use client"
 
-import React, { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import {
-  MapPin,
   Calendar,
   Clock,
-  Car,
   Users,
   ArrowRight,
   ArrowLeft,
@@ -18,153 +16,254 @@ import {
   Navigation,
   Zap,
   LocateFixed,
+  Plus,
+  X,
+  CreditCard,
+  Wallet,
+  DollarSign,
+  Building,
+  MapPin,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Progress } from "@/components/ui/progress"
+import { LocationCombobox } from "@/components//locationInput/locationInput"
 
-// Australian cities data (for demonstration, a real app would use a geocoding API)
-const australianCities = [
+// Comprehensive location data
+const allLocations = [
+  // Perth Airports
+  "Perth Airport (PER)",
+  "Perth Domestic Airport",
+  "Perth International Airport",
+
+  // Perth CBD and Central Areas
+  "Perth CBD",
+  "Perth City Centre",
+  "Perth Train Station",
+  "Perth Bus Station",
+  "Elizabeth Quay",
+  "Kings Park",
+  "Perth Mint",
+  "Perth Concert Hall",
+  "Perth Convention Centre",
+
+  // Perth Suburbs - North
+  "Joondalup",
+  "Wanneroo",
+  "Butler",
+  "Clarkson",
+  "Mindarie",
+  "Quinns Rocks",
+  "Ridgewood",
+  "Merriwa",
+  "Yanchep",
+  "Two Rocks",
+
+  // Perth Suburbs - South
+  "Fremantle",
+  "Rockingham",
+  "Mandurah",
+  "Baldivis",
+  "Secret Harbour",
+  "Safety Bay",
+  "Warnbro",
+  "Port Kennedy",
+  "Singleton",
+  "Golden Bay",
+
+  // Perth Suburbs - East
+  "Midland",
+  "Swan Valley",
+  "Guildford",
+  "Bassendean",
+  "Bayswater",
+  "Maylands",
+  "Mount Lawley",
+  "Inglewood",
+  "Morley",
+  "Noranda",
+  "Beechboro",
+  "Caversham",
+  "Ellenbrook",
+  "The Vines",
+  "Upper Swan",
+  "Bullsbrook",
+  "Chittering",
+
+  // Perth Suburbs - West
+  "Cottesloe",
+  "Scarborough",
+  "Hillarys",
+  "Sorrento",
+  "Marmion",
+  "Duncraig",
+  "Warwick",
+  "Greenwood",
+  "Kingsley",
+  "Woodvale",
+  "Jandakot",
+  "Canning Vale",
+  "Willetton",
+  "Bull Creek",
+  "Leeming",
+  "Bateman",
+  "Applecross",
+  "Mount Pleasant",
+  "Como",
+  "South Perth",
+
+  // Perth Inner Suburbs
+  "Subiaco",
+  "Northbridge",
+  "West Perth",
+  "East Perth",
+  "Leederville",
+  "North Perth",
+  "Highgate",
+  "Perth Airport",
+  "Belmont",
+  "Cloverdale",
+  "Kewdale",
+  "Welshpool",
+  "Victoria Park",
+  "Burswood",
+  "Crown Perth",
+  "Optus Stadium",
+
+  // Shopping Centers
+  "Westfield Carousel",
+  "Westfield Whitford City",
+  "Garden City Shopping Centre",
+  "Lakeside Joondalup",
+  "Innaloo Shopping Centre",
+  "Morley Galleria",
+  "Armadale Shopping City",
+  "Rockingham Shopping Centre",
+  "Mandurah Forum",
+
+  // Hospitals
+  "Royal Perth Hospital",
+  "Sir Charles Gairdner Hospital",
+  "Fremantle Hospital",
+  "Joondalup Health Campus",
+  "Rockingham General Hospital",
+  "Armadale Hospital",
+  "Swan District Hospital",
+
+  // Universities
+  "University of Western Australia",
+  "Curtin University",
+  "Murdoch University",
+  "Edith Cowan University",
+  "Notre Dame University",
+
+  // Other Major Cities
   "Sydney, NSW",
   "Melbourne, VIC",
   "Brisbane, QLD",
-  "Perth, WA",
   "Adelaide, SA",
   "Gold Coast, QLD",
   "Newcastle, NSW",
   "Canberra, ACT",
-  "Sunshine Coast, QLD",
-  "Wollongong, NSW",
-  "Hobart, TAS",
-  "Geelong, VIC",
-  "Townsville, QLD",
-  "Cairns, QLD",
   "Darwin, NT",
-  "Toowoomba, QLD",
-  "Ballarat, VIC",
-  "Bendigo, VIC",
-  "Albury, NSW",
-  "Launceston, TAS",
-  "Mackay, QLD",
-  "Rockhampton, QLD",
-  "Bunbury, WA",
-  "Bundaberg, QLD",
-  "Coffs Harbour, NSW",
-  "Wagga Wagga, NSW",
-  "Hervey Bay, QLD",
-  "Mildura, VIC",
-  "Shepparton, VIC",
-  "Port Macquarie, NSW",
+  "Hobart, TAS",
 ]
 
-// Popular locations within cities (for demonstration)
-const popularLocations = {
-  "Perth, WA": [
-    "Perth Airport (PER)",
-    "Perth CBD",
-    "Fremantle",
-    "Cottesloe Beach",
-    "Subiaco",
-    "Northbridge",
-    "Kings Park",
-    "Scarborough",
-    "Joondalup",
-    "Mandurah",
-    "Rockingham",
-    "Baldivis",
-    "Ellenbrook",
-    "Midland",
-    "Armadale",
-    "Canning Vale",
-    "Cockburn Central",
-    "Hillarys",
-    "Sorrento",
-    "Duncraig",
-    "Kalamunda",
-    "Guildford",
-    "Swan Valley",
-    "Elizabeth Quay",
-    "Optus Stadium",
-    "Crown Perth",
-  ],
+// Passenger options
+const passengerOptions = [
+  { id: "1-2", label: "1-2 Passengers", value: "1-2" },
+  { id: "1-3", label: "1-3 Passengers", value: "1-3" },
+  { id: "1-4", label: "1-4 Passengers", value: "1-4" },
+  { id: "1,2,3,4", label: "1, 2, 3, 4 Passengers", value: "1,2,3,4" },
+  { id: "custom", label: "Custom", value: "custom" },
+]
+
+// Payment methods
+const paymentMethods = [
+  {
+    id: "paying-driver",
+    name: "Paying Driver",
+    description: "Pay the driver directly",
+    icon: User,
+    color: "from-blue-500 to-blue-600",
+  },
+  {
+    id: "ptts-card",
+    name: "PTTS Card",
+    description: "Public transport card payment",
+    icon: CreditCard,
+    color: "from-green-500 to-green-600",
+  },
+  {
+    id: "cabcharge",
+    name: "Cabcharge",
+    description: "Cabcharge account payment",
+    icon: Building,
+    color: "from-yellow-500 to-yellow-600",
+  },
+  {
+    id: "credit-card",
+    name: "Credit Card",
+    description: "Pay with credit/debit card",
+    icon: CreditCard,
+    color: "from-purple-500 to-purple-600",
+  },
+  {
+    id: "cash",
+    name: "Cash",
+    description: "Cash payment to driver",
+    icon: DollarSign,
+    color: "from-gray-500 to-gray-600",
+  },
+  {
+    id: "other",
+    name: "Other",
+    description: "Alternative payment method",
+    icon: Wallet,
+    color: "from-indigo-500 to-indigo-600",
+  },
+]
+
+interface Stop {
+  id: string
+  location: string
 }
 
-// Vehicle types
-const vehicleTypes = [
-  {
-    id: "economy",
-    name: "Economy",
-    description: "Comfortable and affordable",
-    capacity: "1-3 passengers",
-    price: "$25",
-    features: ["Air Conditioning", "GPS Navigation", "Clean Vehicle"],
-    color: "from-blue-500 to-cyan-500",
-    popular: false,
-  },
-  {
-    id: "premium",
-    name: "Premium",
-    description: "Enhanced comfort and style",
-    capacity: "1-4 passengers",
-    price: "$35",
-    features: ["Leather Seats", "Premium Sound", "Phone Charger"],
-    color: "from-purple-500 to-pink-500",
-    popular: true,
-  },
-  {
-    id: "luxury",
-    name: "Luxury",
-    description: "Ultimate premium experience",
-    capacity: "1-4 passengers",
-    price: "$55",
-    features: ["Executive Vehicle", "Complimentary Water", "Professional Chauffeur"],
-    color: "from-gray-700 to-gray-900",
-    popular: false,
-  },
-  {
-    id: "suv",
-    name: "SUV",
-    description: "Spacious for groups and luggage",
-    capacity: "1-6 passengers",
-    price: "$45",
-    features: ["Extra Space", "Large Boot", "Family Friendly"],
-    color: "from-green-500 to-emerald-500",
-    popular: false,
-  },
-]
-
-export default function BookingCap() {
+export default function BookingSystem() {
   const [currentStep, setCurrentStep] = useState(1)
   const [bookingData, setBookingData] = useState({
     pickup: "",
     destination: "",
+    stops: [] as Stop[],
     date: "",
     time: "",
-    vehicleType: "",
-    passengers: 1,
+    passengers: "",
+    customPassengers: "",
+    paymentMethod: "",
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
     specialRequests: "",
   })
-  const [pickupSuggestions, setPickupSuggestions] = useState<string[]>([])
-  const [destinationSuggestions, setDestinationSuggestions] = useState<string[]>([])
-  const [showPickupSuggestions, setShowPickupSuggestions] = useState(false)
-  const [showDestinationSuggestions, setShowDestinationSuggestions] = useState(false)
+
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [bookingSuccess, setBookingSuccess] = useState(false)
   const [bookingError, setBookingError] = useState<string | null>(null)
   const [geolocationError, setGeolocationError] = useState<string | null>(null)
 
-  const pickupInputRef = useRef<HTMLInputElement>(null)
-  const destinationInputRef = useRef<HTMLInputElement>(null)
-
-  // Get current date (YYYY-MM-DD)
+  // Get current date and time
   const getCurrentDate = () => {
     const today = new Date()
     return today.toISOString().split("T")[0]
   }
 
-  // Get current time (HH:MM)
   const getCurrentTime = () => {
     const now = new Date()
     const hours = now.getHours().toString().padStart(2, "0")
@@ -172,7 +271,7 @@ export default function BookingCap() {
     return `${hours}:${minutes}`
   }
 
-  // Initialize with current date/time on component mount
+  // Initialize with current date/time
   useEffect(() => {
     setBookingData((prev) => ({
       ...prev,
@@ -181,98 +280,48 @@ export default function BookingCap() {
     }))
   }, [])
 
-  // Handle click outside to close suggestions
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (pickupInputRef.current && !pickupInputRef.current.contains(event.target as Node)) {
-        setShowPickupSuggestions(false)
-      }
-      if (destinationInputRef.current && !destinationInputRef.current.contains(event.target as Node)) {
-        setShowDestinationSuggestions(false)
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [])
-
-  // Location search functionality (simulated for Perth)
-  const searchLocations = (query: string, type: string) => {
-    if (query.length < 2) {
-      if (type === "pickup") setPickupSuggestions([])
-      if (type === "destination") setDestinationSuggestions([])
-      return
-    }
-
-    // For a real application, you would integrate a geocoding API here (e.g., Google Places API)
-    // This example simulates searching within Perth's popular locations and general WA cities.
-    const allPerthLocations = popularLocations["Perth, WA"] || []
-    const relevantCities = australianCities.filter((city) => city.includes("Perth, WA"))
-
-    const combinedLocations = [...new Set([...allPerthLocations, ...relevantCities])] // Remove duplicates
-
-    const filtered = combinedLocations
-      .filter((location) => location.toLowerCase().includes(query.toLowerCase()))
-      .slice(0, 8) // Limit suggestions
-
-    if (type === "pickup") setPickupSuggestions(filtered)
-    if (type === "destination") setDestinationSuggestions(filtered)
+  const handleStopChange = (stopId: string, value: string) => {
+    setBookingData((prev) => ({
+      ...prev,
+      stops: prev.stops.map((stop) => (stop.id === stopId ? { ...stop, location: value } : stop)),
+    }))
   }
 
-  const handleInputChange = (field: string, value: string | number) => {
-    setBookingData((prev) => ({ ...prev, [field]: value }))
-    if (field === "pickup") {
-      searchLocations(value as string, "pickup")
-      setShowPickupSuggestions(true)
+  const addStop = () => {
+    const newStop: Stop = {
+      id: Date.now().toString(),
+      location: "",
     }
-    if (field === "destination") {
-      searchLocations(value as string, "destination")
-      setShowDestinationSuggestions(true)
-    }
+    setBookingData((prev) => ({
+      ...prev,
+      stops: [...prev.stops, newStop],
+    }))
   }
 
-  const selectLocation = (location: string, type: string) => {
-    if (type === "pickup") {
-      setBookingData((prev) => ({ ...prev, pickup: location }))
-      setShowPickupSuggestions(false)
-    }
-    if (type === "destination") {
-      setBookingData((prev) => ({ ...prev, destination: location }))
-      setShowDestinationSuggestions(false)
-    }
+  const removeStop = (stopId: string) => {
+    setBookingData((prev) => ({
+      ...prev,
+      stops: prev.stops.filter((stop) => stop.id !== stopId),
+    }))
   }
 
   const handleUseCurrentLocation = () => {
-    setGeolocationError(null) // Clear previous errors
+    setGeolocationError(null)
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        async (position) => {
+        (position) => {
           const { latitude, longitude } = position.coords
-          // In a real app, you'd use a reverse geocoding API here
-          // For example: fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=YOUR_API_KEY`)
-          // For this demo, we'll just set a placeholder or a known Perth location
-          setBookingData((prev) => ({
-            ...prev,
-            pickup: `Current Location (Lat: ${latitude.toFixed(2)}, Lon: ${longitude.toFixed(2)})`,
-          }))
-          // Optionally, you could show a success message here if needed
+          const locationText = `Current Location (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`
+          setBookingData((prev) => ({ ...prev, pickup: locationText }))
         },
         (error) => {
-          console.error("Error getting location:", error)
           let errorMessage = "Unable to retrieve your current location. Please enter it manually."
           if (error.code === error.PERMISSION_DENIED) {
-            errorMessage =
-              "Location access denied. Please enable location permissions for this site in your browser settings."
-          } else if (error.code === error.POSITION_UNAVAILABLE) {
-            errorMessage = "Location information is unavailable. Please try again later."
-          } else if (error.code === error.TIMEOUT) {
-            errorMessage = "The request to get user location timed out."
+            errorMessage = "Location access denied. Please enable location permissions in your browser."
           }
           setGeolocationError(errorMessage)
         },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }, // Increased timeout
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
       )
     } else {
       setGeolocationError("Geolocation is not supported by your browser.")
@@ -289,10 +338,15 @@ export default function BookingCap() {
 
   // Validation for each step
   const canProceedStep1 = bookingData.pickup && bookingData.destination && bookingData.date && bookingData.time
-  const canProceedStep2 = bookingData.vehicleType
-  const canProceedStep3 = bookingData.firstName && bookingData.lastName && bookingData.email && bookingData.phone
+  const canProceedStep2 =
+    bookingData.passengers && (bookingData.passengers !== "custom" || bookingData.customPassengers)
+  const canProceedStep3 = bookingData.paymentMethod
+  const canProceedStep4 = bookingData.firstName && bookingData.lastName && bookingData.email && bookingData.phone
 
-  const selectedVehicle = vehicleTypes.find((v) => v.id === bookingData.vehicleType)
+  const selectedPayment = paymentMethods.find((p) => p.id === bookingData.paymentMethod)
+
+  // Calculate progress
+  const progress = (currentStep / 4) * 100
 
   // Handle booking submission
   const handleSubmitBooking = async () => {
@@ -311,22 +365,23 @@ export default function BookingCap() {
 
       if (res.ok) {
         setBookingSuccess(true)
-        // Optionally reset form after successful submission
         setBookingData({
           pickup: "",
           destination: "",
+          stops: [],
           date: getCurrentDate(),
           time: getCurrentTime(),
-          vehicleType: "",
-          passengers: 1,
+          passengers: "",
+          customPassengers: "",
+          paymentMethod: "",
           firstName: "",
           lastName: "",
           email: "",
           phone: "",
           specialRequests: "",
         })
-        setCurrentStep(1) // Go back to first step
-        setTimeout(() => setBookingSuccess(false), 5000) // Hide success message after 5 seconds
+        setCurrentStep(1)
+        setTimeout(() => setBookingSuccess(false), 5000)
       } else {
         setBookingError(data.error || "Failed to confirm booking. Please try again.")
       }
@@ -338,503 +393,504 @@ export default function BookingCap() {
     }
   }
 
-  // Dynamic min time for current date
   const getMinTime = () => {
     if (bookingData.date === getCurrentDate()) {
       return getCurrentTime()
     }
-    return "00:00" // No restriction for future dates
+    return "00:00"
   }
 
   return (
-    <section className="relative bg-gradient-to-b from-white to-gray-50 py-20 lg:py-28 overflow-hidden">
-      {/* Background decorative elements */}
-      <div className="absolute top-20 right-10 w-72 h-72 bg-yellow-400/5 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-20 left-10 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"></div>
-      <div className="relative max-w-4xl mx-auto px-6 lg:px-8">
+    <section className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-12">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center space-y-6 mb-12">
-          <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-gray-200 shadow-sm">
-            <Car className="h-4 w-4 text-yellow-500" />
-            <span className="text-sm font-medium text-gray-700">Book Your Ride</span>
-          </div>
-          <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 leading-tight">
-            Book a
-            <span className="bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent ml-4">
-              Taxi
-            </span>
-          </h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Quick and easy booking in just a few steps. Professional drivers, premium vehicles, guaranteed reliability.
+        <div className="text-center mb-12">
+          <Badge variant="secondary" className="mb-6 px-4 py-2">
+            <Navigation className="h-4 w-4 mr-2" />
+            Professional Taxi Service
+          </Badge>
+          <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">
+            Book Your <span className="text-blue-600">Ride</span>
+          </h1>
+          <p className="text-xl text-gray-700 max-w-2xl mx-auto">
+            Professional drivers, premium vehicles, reliable service across Perth
           </p>
         </div>
-        {/* Progress Steps */}
-        <div className="flex items-center justify-center mb-12">
-          <div className="flex items-center space-x-4">
-            {[1, 2, 3, 4].map((step) => (
-              <React.Fragment key={step}>
-                <div
-                  className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all duration-300 ${
-                    currentStep >= step ? "bg-yellow-400 border-yellow-400 text-black" : "border-gray-300 text-gray-400"
-                  }`}
-                >
-                  {currentStep > step ? <Check className="h-5 w-5" /> : step}
+
+        {/* Progress */}
+        <Card className="mb-8">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-sm font-medium text-gray-600">Step {currentStep} of 4</span>
+              <span className="text-sm font-medium text-gray-600">{Math.round(progress)}% Complete</span>
+            </div>
+            <Progress value={progress} className="h-2" />
+            <div className="flex justify-between mt-4 text-xs text-gray-500">
+              <span className={currentStep >= 1 ? "text-blue-600 font-medium" : ""}>Trip Details</span>
+              <span className={currentStep >= 2 ? "text-blue-600 font-medium" : ""}>Passengers</span>
+              <span className={currentStep >= 3 ? "text-blue-600 font-medium" : ""}>Payment</span>
+              <span className={currentStep >= 4 ? "text-blue-600 font-medium" : ""}>Contact</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Main Form */}
+        <Card className="shadow-2xl">
+          <CardContent className="p-8">
+            {/* Step 1: Trip Details */}
+            {currentStep === 1 && (
+              <div className="space-y-8">
+                <div className="text-center">
+                  <CardTitle className="text-3xl mb-3">Trip Details</CardTitle>
+                  <CardDescription className="text-lg">Where would you like to go?</CardDescription>
                 </div>
-                {step < 4 && (
-                  <div
-                    className={`w-12 h-0.5 transition-all duration-300 ${
-                      currentStep > step ? "bg-yellow-400" : "bg-gray-300"
-                    }`}
-                  ></div>
-                )}
-              </React.Fragment>
-            ))}
-          </div>
-        </div>
-        {/* Main Booking Form */}
-        <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-8 border border-white/20 shadow-2xl">
-          {/* Step 1: Trip Details */}
-          {currentStep === 1 && (
-            <div className="space-y-8">
-              <div className="text-center space-y-2">
-                <h3 className="text-2xl font-bold text-gray-900">Trip Details</h3>
-                <p className="text-gray-600">Where would you like to go?</p>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Pickup Location */}
-                <div className="relative space-y-2">
-                  <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                    <Navigation className="h-4 w-4 text-green-500" />
-                    Pickup Location
-                  </label>
-                  <input
-                    ref={pickupInputRef}
-                    type="text"
-                    value={bookingData.pickup}
-                    onChange={(e) => handleInputChange("pickup", e.target.value)}
-                    onFocus={() => setShowPickupSuggestions(true)}
-                    placeholder="Enter pickup location"
-                    className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-300 text-gray-900 placeholder-gray-500 bg-white"
-                  />
-                  {showPickupSuggestions && pickupSuggestions.length > 0 && (
-                    <div className="absolute z-10 w-full bg-white border border-gray-200 rounded-xl shadow-lg mt-1 max-h-48 overflow-y-auto">
-                      {pickupSuggestions.map((location, index) => (
-                        <button
-                          key={index}
-                          onClick={() => selectLocation(location, "pickup")}
-                          className="w-full text-left p-3 hover:bg-gray-50 transition-colors duration-200 flex items-center gap-2 text-gray-900"
-                        >
-                          <MapPin className="h-4 w-4 text-gray-400" />
-                          {location}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                  <Button
-                    onClick={handleUseCurrentLocation}
-                    variant="outline"
-                    className="w-full mt-2 flex items-center gap-2 text-sm text-gray-700 hover:bg-gray-100 bg-transparent"
-                  >
-                    <LocateFixed className="h-4 w-4" />
-                    Use Current Location
-                  </Button>
+
+                <div className="space-y-6">
+                  {/* Pickup Location */}
+                  <div className="space-y-2">
+                    <Label htmlFor="pickup" className="text-base font-semibold flex items-center gap-2">
+                      <Navigation className="h-4 w-4 text-green-500" />
+                      Pickup Location
+                    </Label>
+                    <LocationCombobox
+                      value={bookingData.pickup}
+                      onValueChange={(value) => setBookingData((prev) => ({ ...prev, pickup: value }))}
+                      placeholder="Select pickup location"
+                      locations={allLocations}
+                    />
+                  </div>
+
+                  <div className="flex justify-center">
+                    <Button
+                      type="button"
+                      onClick={handleUseCurrentLocation}
+                      variant="outline"
+                      className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+                    >
+                      <LocateFixed className="h-4 w-4 mr-2" />
+                      Use Current Location
+                    </Button>
+                  </div>
+
                   {geolocationError && (
-                    <div className="mt-2 p-2 text-sm text-red-700 bg-red-50 rounded-lg">{geolocationError}</div>
+                    <Alert variant="destructive">
+                      <AlertDescription>{geolocationError}</AlertDescription>
+                    </Alert>
                   )}
-                </div>
-                {/* Destination */}
-                <div className="relative space-y-2">
-                  <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-red-500" />
-                    Destination
-                  </label>
-                  <input
-                    ref={destinationInputRef}
-                    type="text"
-                    value={bookingData.destination}
-                    onChange={(e) => handleInputChange("destination", e.target.value)}
-                    onFocus={() => setShowDestinationSuggestions(true)}
-                    placeholder="Enter destination"
-                    className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-300 text-gray-900 placeholder-gray-500 bg-white"
-                  />
-                  {showDestinationSuggestions && destinationSuggestions.length > 0 && (
-                    <div className="absolute z-10 w-full bg-white border border-gray-200 rounded-xl shadow-lg mt-1 max-h-48 overflow-y-auto">
-                      {destinationSuggestions.map((location, index) => (
-                        <button
-                          key={index}
-                          onClick={() => selectLocation(location, "destination")}
-                          className="w-full text-left p-3 hover:bg-gray-50 transition-colors duration-200 flex items-center gap-2 text-gray-900"
+
+                  {/* Stops */}
+                  {bookingData.stops.map((stop, index) => (
+                    <div key={stop.id} className="space-y-2">
+                      <Label className="text-base font-semibold flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-yellow-500" />
+                        Stop {index + 1}
+                      </Label>
+                      <div className="flex gap-2">
+                        <div className="flex-1">
+                          <LocationCombobox
+                            value={stop.location}
+                            onValueChange={(value) => handleStopChange(stop.id, value)}
+                            placeholder={`Select stop ${index + 1} location`}
+                            locations={allLocations}
+                          />
+                        </div>
+                        <Button
+                          type="button"
+                          onClick={() => removeStop(stop.id)}
+                          variant="outline"
+                          size="icon"
+                          className="text-red-600 border-red-200 hover:bg-red-50"
                         >
-                          <MapPin className="h-4 w-4 text-gray-400" />
-                          {location}
-                        </button>
-                      ))}
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
-                  )}
-                </div>
-                {/* Date */}
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-blue-500" />
-                    Date
-                  </label>
-                  <input
-                    type="date"
-                    value={bookingData.date}
-                    min={getCurrentDate()} // Only allow present and future dates
-                    onChange={(e) => handleInputChange("date", e.target.value)}
-                    className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-300 text-gray-900 bg-white"
-                  />
-                </div>
-                {/* Time */}
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-purple-500" />
-                    Time
-                  </label>
-                  <input
-                    type="time"
-                    value={bookingData.time}
-                    min={getMinTime()} // Only allow present and future times for current day
-                    onChange={(e) => handleInputChange("time", e.target.value)}
-                    className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-300 text-gray-900 bg-white"
-                  />
-                </div>
-              </div>
-              <div className="flex justify-end">
-                <Button
-                  onClick={nextStep}
-                  disabled={!canProceedStep1}
-                  className="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed group"
-                >
-                  Continue
-                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
-                </Button>
-              </div>
-            </div>
-          )}
-          {/* Step 2: Vehicle Selection */}
-          {currentStep === 2 && (
-            <div className="space-y-8">
-              <div className="text-center space-y-2">
-                <h3 className="text-2xl font-bold text-gray-900">Choose Your Vehicle</h3>
-                <p className="text-gray-600">Select the perfect ride for your journey</p>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {vehicleTypes.map((vehicle) => (
-                  <div
-                    key={vehicle.id}
-                    onClick={() => handleInputChange("vehicleType", vehicle.id)}
-                    className={`relative p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 hover:scale-105 ${
-                      bookingData.vehicleType === vehicle.id
-                        ? "border-yellow-400 bg-yellow-50"
-                        : "border-gray-200 bg-white hover:border-gray-300"
-                    }`}
+                  ))}
+
+                  <Button
+                    type="button"
+                    onClick={addStop}
+                    variant="outline"
+                    className="w-full border-dashed border-2 border-blue-300 hover:border-blue-500 hover:bg-blue-50 text-blue-600 py-6 bg-transparent"
                   >
-                    {vehicle.popular && (
-                      <div className="absolute -top-3 -right-3 bg-gradient-to-r from-yellow-400 to-yellow-500 text-black text-xs font-bold px-3 py-1 rounded-full shadow-lg flex items-center gap-1">
-                        <Star className="h-3 w-3 fill-current" />
-                        Popular
-                      </div>
-                    )}
-                    <div className="space-y-4">
-                      <div
-                        className={`w-12 h-12 rounded-xl bg-gradient-to-br ${vehicle.color} flex items-center justify-center`}
-                      >
-                        <Car className="h-6 w-6 text-white" />
-                      </div>
-                      <div>
-                        <h4 className="text-xl font-bold text-gray-900">{vehicle.name}</h4>
-                        <p className="text-gray-600 text-sm">{vehicle.description}</p>
-                        <p className="text-gray-500 text-sm">{vehicle.capacity}</p>
-                      </div>
-                      <div className="space-y-2">
-                        {vehicle.features.map((feature, idx) => (
-                          <div key={idx} className="flex items-center gap-2 text-xs text-gray-500">
-                            <Check className="h-3 w-3 text-green-500" />
-                            {feature}
+                    <Plus className="h-5 w-5 mr-2" />
+                    Add Stop
+                  </Button>
+
+                  {/* Destination */}
+                  <div className="space-y-2">
+                    <Label htmlFor="destination" className="text-base font-semibold flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-red-500" />
+                      Destination
+                    </Label>
+                    <LocationCombobox
+                      value={bookingData.destination}
+                      onValueChange={(value) => setBookingData((prev) => ({ ...prev, destination: value }))}
+                      placeholder="Select destination"
+                      locations={allLocations}
+                    />
+                  </div>
+
+                  {/* Date and Time */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="date" className="text-base font-semibold flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-blue-500" />
+                        Date
+                      </Label>
+                      <Input
+                        id="date"
+                        type="date"
+                        value={bookingData.date}
+                        min={getCurrentDate()}
+                        onChange={(e) => setBookingData((prev) => ({ ...prev, date: e.target.value }))}
+                        className="h-12"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="time" className="text-base font-semibold flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-purple-500" />
+                        Time
+                      </Label>
+                      <Input
+                        id="time"
+                        type="time"
+                        value={bookingData.time}
+                        min={getMinTime()}
+                        onChange={(e) => setBookingData((prev) => ({ ...prev, time: e.target.value }))}
+                        className="h-12"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-6">
+                  <Button type="button" onClick={nextStep} disabled={!canProceedStep1} size="lg" className="px-8">
+                    Continue
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 2: Passenger Selection */}
+            {currentStep === 2 && (
+              <div className="space-y-8">
+                <div className="text-center">
+                  <CardTitle className="text-3xl mb-3">Passenger Details</CardTitle>
+                  <CardDescription className="text-lg">How many passengers will be traveling?</CardDescription>
+                </div>
+
+                <div className="space-y-4">
+                  {passengerOptions.map((option) => (
+                    <Card
+                      key={option.id}
+                      className={`cursor-pointer transition-all duration-300 hover:shadow-md ${
+                        bookingData.passengers === option.value
+                          ? "border-blue-500 bg-blue-50 shadow-lg"
+                          : "hover:border-gray-300"
+                      }`}
+                      onClick={() => setBookingData((prev) => ({ ...prev, passengers: option.value }))}
+                    >
+                      <CardContent className="p-6">
+                        <div className="flex items-center gap-4">
+                          <div
+                            className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                              bookingData.passengers === option.value
+                                ? "border-blue-500 bg-blue-500"
+                                : "border-gray-300"
+                            }`}
+                          >
+                            {bookingData.passengers === option.value && <Check className="h-4 w-4 text-white" />}
                           </div>
-                        ))}
-                      </div>
-                      <div className="text-2xl font-bold text-gray-900">{vehicle.price}</div>
+                          <div className="flex items-center gap-3">
+                            <Users className="h-6 w-6 text-gray-500" />
+                            <span className="font-semibold text-lg">{option.label}</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+
+                  {bookingData.passengers === "custom" && (
+                    <div className="space-y-2">
+                      <Label htmlFor="customPassengers" className="text-base font-semibold">
+                        Custom Number of Passengers
+                      </Label>
+                      <Input
+                        id="customPassengers"
+                        type="number"
+                        min="1"
+                        max="20"
+                        value={bookingData.customPassengers}
+                        onChange={(e) => setBookingData((prev) => ({ ...prev, customPassengers: e.target.value }))}
+                        placeholder="Enter number of passengers"
+                        className="h-12"
+                      />
                     </div>
-                  </div>
-                ))}
-              </div>
-              <div className="flex justify-between">
-                <Button
-                  onClick={prevStep}
-                  variant="outline"
-                  className="px-8 py-3 rounded-xl font-semibold group bg-transparent"
-                >
-                  <ArrowLeft className="mr-2 h-5 w-5 group-hover:-translate-x-1 transition-transform duration-300" />
-                  Back
-                </Button>
-                <Button
-                  onClick={nextStep}
-                  disabled={!canProceedStep2}
-                  className="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed group"
-                >
-                  Continue
-                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
-                </Button>
-              </div>
-            </div>
-          )}
-          {/* Step 3: Passenger Details */}
-          {currentStep === 3 && (
-            <div className="space-y-8">
-              <div className="text-center space-y-2">
-                <h3 className="text-2xl font-bold text-gray-900">Passenger Details</h3>
-                <p className="text-gray-600">Tell us about yourself</p>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                    <User className="h-4 w-4 text-blue-500" />
-                    First Name
-                  </label>
-                  <input
-                    type="text"
-                    value={bookingData.firstName}
-                    onChange={(e) => handleInputChange("firstName", e.target.value)}
-                    placeholder="Enter first name"
-                    className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-300 text-gray-900 placeholder-gray-500 bg-white"
-                  />
+                  )}
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                    <User className="h-4 w-4 text-blue-500" />
-                    Last Name
-                  </label>
-                  <input
-                    type="text"
-                    value={bookingData.lastName}
-                    onChange={(e) => handleInputChange("lastName", e.target.value)}
-                    placeholder="Enter last name"
-                    className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-300 text-gray-900 placeholder-gray-500 bg-white"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-green-500" />
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    value={bookingData.email}
-                    onChange={(e) => handleInputChange("email", e.target.value)}
-                    placeholder="Enter email address"
-                    className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-300 text-gray-900 placeholder-gray-500 bg-white"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-purple-500" />
-                    Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    value={bookingData.phone}
-                    onChange={(e) => handleInputChange("phone", e.target.value)}
-                    placeholder="Enter phone number"
-                    className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-300 text-gray-900 placeholder-gray-500 bg-white"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                    <Users className="h-4 w-4 text-orange-500" />
-                    Number of Passengers
-                  </label>
-                  <select
-                    value={bookingData.passengers}
-                    onChange={(e) => handleInputChange("passengers", Number.parseInt(e.target.value))}
-                    className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-300 text-gray-900 bg-white"
-                  >
-                    {[1, 2, 3, 4, 5, 6].map((num) => (
-                      <option key={num} value={num}>
-                        {num} Passenger{num > 1 ? "s" : ""}
-                      </option>
-                    ))}
-                  </select>
+
+                <div className="flex justify-between pt-6">
+                  <Button type="button" onClick={prevStep} variant="outline" size="lg" className="px-8 bg-transparent">
+                    <ArrowLeft className="mr-2 h-5 w-5" />
+                    Back
+                  </Button>
+                  <Button type="button" onClick={nextStep} disabled={!canProceedStep2} size="lg" className="px-8">
+                    Continue
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
                 </div>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700">Special Requests (Optional)</label>
-                <textarea
-                  value={bookingData.specialRequests}
-                  onChange={(e) => handleInputChange("specialRequests", e.target.value)}
-                  placeholder="Any special requirements or requests..."
-                  rows={3}
-                  className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-300 resize-none text-gray-900 placeholder-gray-500 bg-white"
-                />
-              </div>
-              <div className="flex justify-between">
-                <Button
-                  onClick={prevStep}
-                  variant="outline"
-                  className="px-8 py-3 rounded-xl font-semibold group bg-transparent"
-                >
-                  <ArrowLeft className="mr-2 h-5 w-5 group-hover:-translate-x-1 transition-transform duration-300" />
-                  Back
-                </Button>
-                <Button
-                  onClick={nextStep}
-                  disabled={!canProceedStep3}
-                  className="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed group"
-                >
-                  Review Booking
-                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
-                </Button>
-              </div>
-            </div>
-          )}
-          {/* Step 4: Booking Summary */}
-          {currentStep === 4 && (
-            <div className="space-y-8">
-              <div className="text-center space-y-2">
-                <h3 className="text-2xl font-bold text-gray-900">Booking Summary</h3>
-                <p className="text-gray-600">Review your booking details</p>
-              </div>
-              <div className="space-y-6">
-                {/* Trip Details Card */}
-                <div className="bg-gray-50 rounded-2xl p-6 space-y-4">
-                  <h4 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                    <MapPin className="h-5 w-5 text-blue-500" />
-                    Trip Details
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-gray-500">From:</span>
-                      <p className="font-medium text-gray-900">{bookingData.pickup}</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">To:</span>
-                      <p className="font-medium text-gray-900">{bookingData.destination}</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Date:</span>
-                      <p className="font-medium text-gray-900">{new Date(bookingData.date).toLocaleDateString()}</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Time:</span>
-                      <p className="font-medium text-gray-900">{bookingData.time}</p>
-                    </div>
-                  </div>
+            )}
+
+            {/* Step 3: Payment Method */}
+            {currentStep === 3 && (
+              <div className="space-y-8">
+                <div className="text-center">
+                  <CardTitle className="text-3xl mb-3">Payment Method</CardTitle>
+                  <CardDescription className="text-lg">How would you like to pay? (Payment after ride)</CardDescription>
                 </div>
-                {/* Vehicle Details Card */}
-                {selectedVehicle && (
-                  <div className="bg-gray-50 rounded-2xl p-6 space-y-4">
-                    <h4 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                      <Car className="h-5 w-5 text-green-500" />
-                      Vehicle Details
-                    </h4>
-                    <div className="flex items-center gap-4">
-                      <div
-                        className={`w-12 h-12 rounded-xl bg-gradient-to-br ${selectedVehicle.color} flex items-center justify-center`}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {paymentMethods.map((method) => {
+                    const IconComponent = method.icon
+                    return (
+                      <Card
+                        key={method.id}
+                        className={`cursor-pointer transition-all duration-300 hover:shadow-md ${
+                          bookingData.paymentMethod === method.id
+                            ? "border-blue-500 bg-blue-50 shadow-lg"
+                            : "hover:border-gray-300"
+                        }`}
+                        onClick={() => setBookingData((prev) => ({ ...prev, paymentMethod: method.id }))}
                       >
-                        <Car className="h-6 w-6 text-white" />
+                        <CardContent className="p-6">
+                          <div className="flex items-center gap-4">
+                            <div
+                              className={`w-14 h-14 rounded-xl bg-gradient-to-br ${method.color} flex items-center justify-center shadow-md`}
+                            >
+                              <IconComponent className="h-7 w-7 text-white" />
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="font-bold text-lg">{method.name}</h3>
+                              <p className="text-sm text-muted-foreground">{method.description}</p>
+                            </div>
+                            {bookingData.paymentMethod === method.id && (
+                              <Check className="h-6 w-6 text-blue-500 flex-shrink-0" />
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )
+                  })}
+                </div>
+
+                <div className="flex justify-between pt-6">
+                  <Button type="button" onClick={prevStep} variant="outline" size="lg" className="px-8 bg-transparent">
+                    <ArrowLeft className="mr-2 h-5 w-5" />
+                    Back
+                  </Button>
+                  <Button type="button" onClick={nextStep} disabled={!canProceedStep3} size="lg" className="px-8">
+                    Continue
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 4: Contact Information */}
+            {currentStep === 4 && (
+              <div className="space-y-8">
+                <div className="text-center">
+                  <CardTitle className="text-3xl mb-3">Contact Information</CardTitle>
+                  <CardDescription className="text-lg">We need your details to confirm the booking</CardDescription>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName" className="text-base font-semibold flex items-center gap-2">
+                      <User className="h-4 w-4 text-blue-500" />
+                      First Name
+                    </Label>
+                    <Input
+                      id="firstName"
+                      type="text"
+                      value={bookingData.firstName}
+                      onChange={(e) => setBookingData((prev) => ({ ...prev, firstName: e.target.value }))}
+                      placeholder="Enter first name"
+                      className="h-12"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName" className="text-base font-semibold flex items-center gap-2">
+                      <User className="h-4 w-4 text-blue-500" />
+                      Last Name
+                    </Label>
+                    <Input
+                      id="lastName"
+                      type="text"
+                      value={bookingData.lastName}
+                      onChange={(e) => setBookingData((prev) => ({ ...prev, lastName: e.target.value }))}
+                      placeholder="Enter last name"
+                      className="h-12"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-base font-semibold flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-green-500" />
+                      Email
+                    </Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={bookingData.email}
+                      onChange={(e) => setBookingData((prev) => ({ ...prev, email: e.target.value }))}
+                      placeholder="Enter email address"
+                      className="h-12"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone" className="text-base font-semibold flex items-center gap-2">
+                      <Phone className="h-4 w-4 text-purple-500" />
+                      Phone Number
+                    </Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={bookingData.phone}
+                      onChange={(e) => setBookingData((prev) => ({ ...prev, phone: e.target.value }))}
+                      placeholder="Enter phone number"
+                      className="h-12"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="specialRequests" className="text-base font-semibold">
+                    Special Requests (Optional)
+                  </Label>
+                  <Textarea
+                    id="specialRequests"
+                    value={bookingData.specialRequests}
+                    onChange={(e) => setBookingData((prev) => ({ ...prev, specialRequests: e.target.value }))}
+                    placeholder="Any special requirements or requests..."
+                    rows={4}
+                    className="resize-none"
+                  />
+                </div>
+
+                {/* Booking Summary */}
+                <Card className="bg-gradient-to-r from-gray-50 to-blue-50 border-gray-200">
+                  <CardHeader>
+                    <CardTitle className="text-xl">Booking Summary</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="text-muted-foreground font-medium">From:</span>
+                        <p className="font-semibold">{bookingData.pickup}</p>
+                      </div>
+                      {bookingData.stops.length > 0 && (
+                        <div>
+                          <span className="text-muted-foreground font-medium">Stops:</span>
+                          {bookingData.stops.map((stop, index) => (
+                            <p key={stop.id} className="font-semibold">
+                              {index + 1}. {stop.location}
+                            </p>
+                          ))}
+                        </div>
+                      )}
+                      <div>
+                        <span className="text-muted-foreground font-medium">To:</span>
+                        <p className="font-semibold">{bookingData.destination}</p>
                       </div>
                       <div>
-                        <p className="font-semibold text-gray-900">{selectedVehicle.name}</p>
-                        <p className="text-sm text-gray-600">{selectedVehicle.description}</p>
-                        <p className="text-sm text-gray-500">{selectedVehicle.capacity}</p>
+                        <span className="text-muted-foreground font-medium">Date & Time:</span>
+                        <p className="font-semibold">
+                          {new Date(bookingData.date).toLocaleDateString()} at {bookingData.time}
+                        </p>
                       </div>
-                      <div className="ml-auto text-2xl font-bold text-gray-900">{selectedVehicle.price}</div>
+                      <div>
+                        <span className="text-muted-foreground font-medium">Passengers:</span>
+                        <p className="font-semibold">
+                          {bookingData.passengers === "custom" ? bookingData.customPassengers : bookingData.passengers}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground font-medium">Payment:</span>
+                        <p className="font-semibold">{selectedPayment?.name}</p>
+                      </div>
                     </div>
-                  </div>
+                  </CardContent>
+                </Card>
+
+                <div className="flex justify-between pt-6">
+                  <Button type="button" onClick={prevStep} variant="outline" size="lg" className="px-8 bg-transparent">
+                    <ArrowLeft className="mr-2 h-5 w-5" />
+                    Back
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={handleSubmitBooking}
+                    disabled={!canProceedStep4 || isSubmitting}
+                    size="lg"
+                    className="px-8 bg-green-600 hover:bg-green-700"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="w-5 h-5 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Confirming...
+                      </>
+                    ) : (
+                      <>
+                        Confirm Booking
+                        <Check className="ml-2 h-5 w-5" />
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                {bookingSuccess && (
+                  <Alert className="border-green-200 bg-green-50">
+                    <Check className="h-4 w-4 text-green-600" />
+                    <AlertDescription className="text-green-800 font-medium">
+                      ✅ Booking confirmed! You will receive a confirmation email shortly.
+                    </AlertDescription>
+                  </Alert>
                 )}
-                {/* Passenger Details Card */}
-                <div className="bg-gray-50 rounded-2xl p-6 space-y-4">
-                  <h4 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                    <User className="h-5 w-5 text-purple-500" />
-                    Passenger Details
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-gray-500">Name:</span>
-                      <p className="font-medium text-gray-900">
-                        {bookingData.firstName} {bookingData.lastName}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Email:</span>
-                      <p className="font-medium text-gray-900">{bookingData.email}</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Phone:</span>
-                      <p className="font-medium text-gray-900">{bookingData.phone}</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Passengers:</span>
-                      <p className="font-medium text-gray-900">{bookingData.passengers}</p>
-                    </div>
-                  </div>
-                  {bookingData.specialRequests && (
-                    <div>
-                      <span className="text-gray-500">Special Requests:</span>
-                      <p className="font-medium text-gray-900">{bookingData.specialRequests}</p>
-                    </div>
-                  )}
-                </div>
-                {/* Trust Indicators */}
-                <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-2xl p-6">
-                  <div className="flex items-center justify-center gap-8 text-sm">
-                    <div className="flex items-center gap-2">
-                      <Shield className="h-5 w-5 text-green-500" />
-                      <span className="font-medium text-gray-700">Fully Insured</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Star className="h-5 w-5 text-yellow-500 fill-current" />
-                      <span className="font-medium text-gray-700">4.9/5 Rating</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Zap className="h-5 w-5 text-blue-500" />
-                      <span className="font-medium text-gray-700">Instant Confirmation</span>
-                    </div>
-                  </div>
-                </div>
+
+                {bookingError && (
+                  <Alert variant="destructive">
+                    <AlertDescription>❌ Error: {bookingError}</AlertDescription>
+                  </Alert>
+                )}
               </div>
-              <div className="flex justify-between">
-                <Button
-                  onClick={prevStep}
-                  variant="outline"
-                  className="px-8 py-3 rounded-xl font-semibold group bg-transparent"
-                >
-                  <ArrowLeft className="mr-2 h-5 w-5 group-hover:-translate-x-1 transition-transform duration-300" />
-                  Back
-                </Button>
-                <Button
-                  onClick={handleSubmitBooking}
-                  disabled={isSubmitting}
-                  className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <div className="w-5 h-5 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Confirming...
-                    </>
-                  ) : (
-                    <>
-                      Confirm Booking
-                      <Check className="ml-2 h-5 w-5 group-hover:scale-110 transition-transform duration-300" />
-                    </>
-                  )}
-                </Button>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Trust Indicators */}
+        <Card className="mt-12">
+          <CardContent className="p-8">
+            <div className="flex items-center justify-center gap-12 text-base flex-wrap">
+              <div className="flex items-center gap-3">
+                <Shield className="h-6 w-6 text-green-500" />
+                <span className="font-semibold">Fully Insured</span>
               </div>
-              {bookingSuccess && (
-                <div className="mt-4 p-3 bg-green-100 text-green-800 rounded-lg text-center font-medium">
-                  Booking confirmed! You will receive a confirmation email shortly.
-                </div>
-              )}
-              {bookingError && (
-                <div className="mt-4 p-3 bg-red-100 text-red-800 rounded-lg text-center font-medium">
-                  Error: {bookingError}
-                </div>
-              )}
+              <Separator orientation="vertical" className="h-6" />
+              <div className="flex items-center gap-3">
+                <Star className="h-6 w-6 text-yellow-500 fill-current" />
+                <span className="font-semibold">4.9/5 Rating</span>
+              </div>
+              <Separator orientation="vertical" className="h-6" />
+              <div className="flex items-center gap-3">
+                <Zap className="h-6 w-6 text-blue-500" />
+                <span className="font-semibold">24/7 Service</span>
+              </div>
             </div>
-          )}
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </section>
   )
