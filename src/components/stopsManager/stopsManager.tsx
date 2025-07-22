@@ -1,83 +1,68 @@
 "use client"
-import { Plus, Trash2 } from "lucide-react"
+
+import { Plus, Trash2, MapPin } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { LocationInput } from "@/components/locationInput/locationInput"
-import type { Stop, LocationDetails } from "@/types/location"
+import type { Stop, LocationData } from "@/types/location"
 
-interface StopsManagerProps {
+interface StopsProps {
   stops: Stop[]
   onChange: (stops: Stop[]) => void
-  disabled?: boolean
 }
 
-export function StopsManager({ stops, onChange, disabled = false }: StopsManagerProps) {
+export function Stops({ stops, onChange }: StopsProps) {
   const addStop = () => {
     const newStop: Stop = {
-      id: `stop-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `stop-${Date.now()}`,
       location: null,
-      isValid: false,
     }
     onChange([...stops, newStop])
   }
 
-  const removeStop = (stopId: string) => {
-    onChange(stops.filter((stop) => stop.id !== stopId))
+  const removeStop = (id: string) => {
+    onChange(stops.filter((stop) => stop.id !== id))
   }
 
-  const updateStop = (stopId: string, location: LocationDetails | null) => {
-    const updatedStops = stops.map((stop) => (stop.id === stopId ? { ...stop, location, isValid: !!location } : stop))
-    onChange(updatedStops)
+  const updateStop = (id: string, location: LocationData | null) => {
+    onChange(stops.map((stop) => (stop.id === id ? { ...stop, location } : stop)))
   }
 
   return (
     <div className="space-y-4">
-      {stops.length > 0 && (
-        <div className="space-y-4">
-          {stops.map((stop, index) => (
-            <div key={stop.id} className="relative">
-              <div className="flex gap-2 items-end">
-                <div className="flex-1">
-                  <LocationInput
-                    label={`Stop ${index + 1}`}
-                    type="stop"
-                    value={stop.location}
-                    onChange={(location) => updateStop(stop.id, location)}
-                    placeholder={`Enter stop ${index + 1} location in Perth`}
-                    disabled={disabled}
-                    showCurrentLocation={false}
-                  />
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="lg"
-                  onClick={() => removeStop(stop.id)}
-                  disabled={disabled}
-                  className="h-14 px-4 border-2 border-red-200 text-red-600 hover:border-red-400 hover:bg-red-50"
-                  title="Remove this stop"
-                >
-                  <Trash2 className="h-5 w-5" />
-                </Button>
-              </div>
-            </div>
-          ))}
+      {stops.map((stop, index) => (
+        <div key={stop.id} className="flex gap-2 items-end">
+          <div className="flex-1">
+            <LocationInput
+              label={`Stop ${index + 1}`}
+              value={stop.location}
+              onChange={(location) => updateStop(stop.id, location)}
+              placeholder="Enter stop location in Perth"
+              icon={<MapPin className="h-5 w-5 text-orange-600" />}
+            />
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="lg"
+            onClick={() => removeStop(stop.id)}
+            className="h-14 px-4 text-red-600 border-red-200 hover:bg-red-50"
+          >
+            <Trash2 className="h-5 w-5" />
+          </Button>
         </div>
-      )}
+      ))}
 
-      {stops.length < 5 && (
+      {stops.length < 3 && (
         <Button
           type="button"
           variant="outline"
           onClick={addStop}
-          disabled={disabled}
-          className="w-full h-12 border-2 border-dashed border-gray-300 hover:border-teal-500 hover:bg-teal-50 text-gray-700 hover:text-teal-700 bg-transparent"
+          className="w-full h-12 border-dashed border-gray-300 hover:border-teal-500 bg-transparent"
         >
           <Plus className="h-5 w-5 mr-2" />
-          Add Stop {stops.length > 0 ? `(${stops.length}/5)` : "(Optional)"}
+          Add Stop ({stops.length}/3)
         </Button>
       )}
-
-      {stops.length >= 5 && <p className="text-sm text-gray-500 text-center">Maximum 5 stops allowed</p>}
     </div>
   )
 }

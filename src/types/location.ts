@@ -11,18 +11,6 @@ export interface LocationDetails {
   types?: string[]
 }
 
-export interface Stop {
-  id: string
-  location: LocationDetails | null
-  isValid: boolean
-}
-
-export interface BookingLocation {
-  pickup: LocationDetails | null
-  destination: LocationDetails | null
-  stops: Stop[]
-}
-
 export interface RouteInfo {
   distance: string
   duration: string
@@ -31,4 +19,23 @@ export interface RouteInfo {
   totalDurationMin: number
 }
 
-export type LocationInputType = 'pickup' | 'destination' | 'stop'
+export type LocationInputType = "pickup" | "destination" | "stop" | undefined
+
+export interface LocationData {
+  address: string
+  lat: number
+  lng: number
+  placeId?: string
+}
+
+export interface Stop {
+  id: string
+  location: LocationData | null
+  isValid?: boolean
+}
+
+export interface RouteData {
+  distance: string
+  duration: string
+  fare: string
+}

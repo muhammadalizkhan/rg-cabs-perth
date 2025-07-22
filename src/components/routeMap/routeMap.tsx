@@ -2,294 +2,197 @@
 
 import { useEffect, useRef, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { MapPin, Navigation, Clock, Route, DollarSign, AlertCircle } from "lucide-react"
-import type { LocationDetails, Stop, RouteInfo } from "@/types/location"
-import { LocationServices } from "@/utils/location-services"
+import { MapPin, Route, Navigation, Clock, DollarSign } from "lucide-react"
+import { GoogleMapsLoader } from "@/lib/googlemaps"
+import type { LocationData, Stop, RouteData } from "@/types/location"
+
 
 interface RouteMapProps {
-  pickup: LocationDetails | null
-  destination: LocationDetails | null
+  pickup: LocationData | null
+  destination: LocationData | null
   stops: Stop[]
-  vehicleType?: string
-  onRouteCalculated?: (routeInfo: RouteInfo | null) => void
+  onRouteChange?: (route: RouteData | null) => void
 }
 
-export function RouteMap({
-  pickup,
-  destination,
-  stops,
-  vehicleType = "sedan",
-  onRouteCalculated,
-}: RouteMapProps) {
+export function RouteMap({ pickup, destination, stops, onRouteChange }: RouteMapProps) {
   const mapRef = useRef<HTMLDivElement>(null)
-  const mapInstanceRef = useRef<any | null>(null)
-  const directionsServiceRef = useRef<any | null>(null)
-  const directionsRendererRef = useRef<any | null>(null)
-  const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null)
+  const mapInstance = useRef<google.maps.Map | null>(null)
+  const directionsService = useRef<google.maps.DirectionsService | null>(null)
+  const directionsRenderer = useRef<google.maps.DirectionsRenderer | null>(null)
+
   const [isLoading, setIsLoading] = useState(false)
+  const [routeData, setRouteData] = useState<RouteData | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [isMapLoaded, setIsMapLoaded] = useState(false)
 
   // Initialize map
   useEffect(() => {
-    const initializeMap = async () => {
-      if (!mapRef.current) return
-
-      // Wait for Google Maps to load
-      let attempts = 0
-      const maxAttempts = 50
-
-      const waitForGoogleMaps = () => {
-        return new Promise<void>((resolve, reject) => {
-          const checkGoogleMaps = () => {
-            attempts++
-            if (window.google && window.google.maps) {
-              resolve()
-            } else if (attempts >= maxAttempts) {
-              reject(new Error("Google Maps failed to load"))
-            } else {
-              setTimeout(checkGoogleMaps, 100)
-            }
-          }
-          checkGoogleMaps()
-        })
-      }
-
+    const initMap = async () => {
       try {
-        await waitForGoogleMaps()
+        await GoogleMapsLoader.load()
 
-        mapInstanceRef.current = new window.google.maps.Map(mapRef.current, {
+        if (!mapRef.current) return
+
+        mapInstance.current = new google.maps.Map(mapRef.current, {
           zoom: 11,
           center: { lat: -31.9505, lng: 115.8605 }, // Perth center
           mapTypeControl: false,
           streetViewControl: false,
           fullscreenControl: false,
-          zoomControl: true,
-          styles: [
-            {
-              featureType: "poi",
-              elementType: "labels",
-              stylers: [{ visibility: "off" }],
-            },
-            {
-              featureType: "transit",
-              elementType: "labels",
-              stylers: [{ visibility: "off" }],
-            },
-          ],
         })
 
-        directionsServiceRef.current = new window.google.maps.DirectionsService()
-        directionsRendererRef.current = new window.google.maps.DirectionsRenderer({
-          suppressMarkers: false,
+        directionsService.current = new google.maps.DirectionsService()
+        directionsRenderer.current = new google.maps.DirectionsRenderer({
           polylineOptions: {
             strokeColor: "#14b8a6",
-            strokeWeight: 5,
-            strokeOpacity: 0.8,
-          },
-          markerOptions: {
-            icon: {
-              path: window.google.maps.SymbolPath.CIRCLE,
-              scale: 8,
-              fillColor: "#14b8a6",
-              fillOpacity: 1,
-              strokeColor: "#ffffff",
-              strokeWeight: 2,
-            },
+            strokeWeight: 4,
           },
         })
 
-        directionsRendererRef.current.setMap(mapInstanceRef.current)
-        setIsMapLoaded(true)
-        setError(null)
-      } catch (error) {
-        console.error("Error initializing map:", error)
-        setError("Failed to load map. Please refresh the page.")
+        directionsRenderer.current.setMap(mapInstance.current)
+      } catch (err) {
+        setError("Failed to load map")
       }
     }
 
-    initializeMap()
+    initMap()
   }, [])
 
-  // Calculate route when locations change
+  // Calculate route
   useEffect(() => {
-    if (!pickup || !destination || !directionsServiceRef.current || !directionsRendererRef.current || !isMapLoaded) {
-      setRouteInfo(null)
-      onRouteCalculated?.(null)
+    if (!pickup || !destination || !directionsService.current) {
+      setRouteData(null)
+      onRouteChange?.(null)
       return
     }
 
     setIsLoading(true)
     setError(null)
 
-    const validStops = stops
-      .filter((stop) => stop.location && stop.isValid)
+    const waypoints = stops
+      .filter((stop) => stop.location)
       .map((stop) => ({
-        location: new window.google.maps.LatLng(stop.location!.coordinates.lat, stop.location!.coordinates.lng),
+        location: new google.maps.LatLng(stop.location!.lat, stop.location!.lng),
         stopover: true,
       }))
 
-    const request: any = {
-      origin: new window.google.maps.LatLng(pickup.coordinates.lat, pickup.coordinates.lng),
-      destination: new window.google.maps.LatLng(destination.coordinates.lat, destination.coordinates.lng),
-      waypoints: validStops,
-      travelMode: window.google.maps.TravelMode.DRIVING,
-      unitSystem: window.google.maps.UnitSystem.METRIC,
-      avoidHighways: false,
-      avoidTolls: false,
-      optimizeWaypoints: validStops.length > 1,
+    const request: google.maps.DirectionsRequest = {
+      origin: new google.maps.LatLng(pickup.lat, pickup.lng),
+      destination: new google.maps.LatLng(destination.lat, destination.lng),
+      waypoints,
+      travelMode: google.maps.TravelMode.DRIVING,
+      unitSystem: google.maps.UnitSystem.METRIC,
     }
 
-    directionsServiceRef.current.route(request, (result: any, status: any) => {
+    directionsService.current.route(request, (result, status) => {
       setIsLoading(false)
 
       if (status === "OK" && result) {
-        directionsRendererRef.current?.setDirections(result)
+        directionsRenderer.current?.setDirections(result)
 
-        const route = result.routes[0]
+        // Calculate totals
         let totalDistance = 0
         let totalDuration = 0
 
-        route.legs.forEach((leg: any) => {
+        result.routes[0].legs.forEach((leg) => {
           totalDistance += leg.distance?.value || 0
           totalDuration += leg.duration?.value || 0
         })
 
         const distanceKm = totalDistance / 1000
         const durationMin = Math.ceil(totalDuration / 60)
-        const estimatedFare = LocationServices.calculateFare(distanceKm, durationMin, vehicleType)
+        const fare = 5.5 + distanceKm * 2.2
 
-        const routeInfoData: RouteInfo = {
+        const route: RouteData = {
           distance: `${distanceKm.toFixed(1)} km`,
           duration: `${durationMin} min`,
-          estimatedFare: `$${estimatedFare.toFixed(2)} AUD`,
-          totalDistanceKm: distanceKm,
-          totalDurationMin: durationMin,
+          fare: `$${fare.toFixed(2)}`,
         }
 
-        setRouteInfo(routeInfoData)
-        onRouteCalculated?.(routeInfoData)
+        setRouteData(route)
+        onRouteChange?.(route)
       } else {
-        let errorMessage = "Could not calculate route. Please check your locations."
-
-        switch (status) {
-          case "ZERO_RESULTS":
-            errorMessage = "No route found between the selected locations"
-            break
-          case "OVER_QUERY_LIMIT":
-            errorMessage = "Too many requests. Please try again in a moment."
-            break
-          case "REQUEST_DENIED":
-            errorMessage = "Route request was denied. Please check API configuration."
-            break
-          case "INVALID_REQUEST":
-            errorMessage = "Invalid route request. Please check your locations."
-            break
-        }
-
-        setError(errorMessage)
-        onRouteCalculated?.(null)
-        console.error("Directions request failed:", status, result)
+        setError("Could not calculate route")
+        onRouteChange?.(null)
       }
     })
-  }, [pickup, destination, stops, vehicleType, onRouteCalculated, isMapLoaded])
+  }, [pickup, destination, stops, onRouteChange])
 
   if (!pickup || !destination) {
     return (
-      <Card className="border-2 border-gray-300 bg-white shadow-sm">
+      <Card>
         <CardContent className="p-8 text-center">
           <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600 font-medium">Enter pickup and destination to see route</p>
+          <p className="text-gray-600">Enter pickup and destination to see route</p>
         </CardContent>
       </Card>
     )
   }
 
   return (
-    <Card className="border-2 border-gray-300 bg-white shadow-sm">
-      <CardHeader className="pb-4">
-        <CardTitle className="text-xl text-gray-900 flex items-center gap-2 font-bold">
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
           <Route className="h-5 w-5 text-teal-500" />
           Route Preview
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Map Container */}
         <div className="relative">
-          <div ref={mapRef} className="w-full h-80 rounded-lg border-2 border-gray-200 bg-gray-100" />
-
-          {!isMapLoaded && (
-            <div className="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center rounded-lg">
-              <div className="text-center">
-                <div className="w-8 h-8 border-2 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-                <p className="text-sm font-medium text-gray-700">Loading map...</p>
-              </div>
-            </div>
-          )}
-
-          {isLoading && isMapLoaded && (
+          <div ref={mapRef} className="w-full h-64 rounded-lg bg-gray-100" />
+          {isLoading && (
             <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center rounded-lg">
               <div className="text-center">
-                <div className="w-8 h-8 border-2 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-                <p className="text-sm font-medium text-gray-700">Calculating optimal route...</p>
+                <div className="w-6 h-6 border-2 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                <p className="text-sm">Calculating route...</p>
               </div>
             </div>
           )}
-
           {error && (
-            <div className="absolute inset-0 bg-red-50 bg-opacity-90 flex items-center justify-center rounded-lg">
-              <div className="text-center px-4">
-                <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-2" />
-                <p className="text-sm font-medium text-red-700">{error}</p>
-              </div>
+            <div className="absolute inset-0 bg-red-50 flex items-center justify-center rounded-lg">
+              <p className="text-red-600 text-sm">{error}</p>
             </div>
           )}
         </div>
 
-        {/* Route Information */}
-        {routeInfo && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <Navigation className="h-6 w-6 text-blue-600 mx-auto mb-2" />
-              <p className="text-sm font-medium text-blue-800">Distance</p>
-              <p className="text-xl font-bold text-blue-900">{routeInfo.distance}</p>
+        {routeData && (
+          <div className="grid grid-cols-3 gap-4">
+            <div className="text-center p-3 bg-blue-50 rounded-lg">
+              <Navigation className="h-5 w-5 text-blue-600 mx-auto mb-1" />
+              <p className="text-xs text-blue-800">Distance</p>
+              <p className="font-bold text-blue-900">{routeData.distance}</p>
             </div>
-            <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
-              <Clock className="h-6 w-6 text-green-600 mx-auto mb-2" />
-              <p className="text-sm font-medium text-green-800">Duration</p>
-              <p className="text-xl font-bold text-green-900">{routeInfo.duration}</p>
+            <div className="text-center p-3 bg-green-50 rounded-lg">
+              <Clock className="h-5 w-5 text-green-600 mx-auto mb-1" />
+              <p className="text-xs text-green-800">Duration</p>
+              <p className="font-bold text-green-900">{routeData.duration}</p>
             </div>
-            <div className="text-center p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-              <DollarSign className="h-6 w-6 text-yellow-600 mx-auto mb-2" />
-              <p className="text-sm font-medium text-yellow-800">Est. Fare</p>
-              <p className="text-xl font-bold text-yellow-900">{routeInfo.estimatedFare}</p>
+            <div className="text-center p-3 bg-yellow-50 rounded-lg">
+              <DollarSign className="h-5 w-5 text-yellow-600 mx-auto mb-1" />
+              <p className="text-xs text-yellow-800">Est. Fare</p>
+              <p className="font-bold text-yellow-900">{routeData.fare}</p>
             </div>
           </div>
         )}
 
-        {/* Route Details */}
-        <div className="space-y-3 text-sm bg-gray-50 p-4 rounded-lg">
-          <h4 className="font-semibold text-gray-900 mb-3">Route Details:</h4>
-          <div className="flex items-center gap-3">
-            <div className="w-4 h-4 bg-green-500 rounded-full flex-shrink-0"></div>
-            <span className="font-medium text-gray-700">Pickup:</span>
-            <span className="text-gray-900 font-semibold flex-1">{pickup.address}</span>
+        <div className="space-y-2 text-sm bg-gray-50 p-3 rounded-lg">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-green-500 rounded-full" />
+            <span className="font-medium">From:</span>
+            <span className="text-gray-700">{pickup.address}</span>
           </div>
-
           {stops
-            .filter((stop) => stop.location && stop.isValid)
-            .map((stop, index) => (
-              <div key={stop.id} className="flex items-center gap-3">
-                <div className="w-4 h-4 bg-orange-500 rounded-full flex-shrink-0"></div>
-                <span className="font-medium text-gray-700">Stop {index + 1}:</span>
-                <span className="text-gray-900 font-semibold flex-1">{stop.location!.address}</span>
+            .filter((s) => s.location)
+            .map((stop, i) => (
+              <div key={stop.id} className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-orange-500 rounded-full" />
+                <span className="font-medium">Stop {i + 1}:</span>
+                <span className="text-gray-700">{stop.location!.address}</span>
               </div>
             ))}
-
-          <div className="flex items-center gap-3">
-            <div className="w-4 h-4 bg-red-500 rounded-full flex-shrink-0"></div>
-            <span className="font-medium text-gray-700">Destination:</span>
-            <span className="text-gray-900 font-semibold flex-1">{destination.address}</span>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-red-500 rounded-full" />
+            <span className="font-medium">To:</span>
+            <span className="text-gray-700">{destination.address}</span>
           </div>
         </div>
       </CardContent>

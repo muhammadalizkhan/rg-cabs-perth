@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import Navbar from "@/components/navbar/navbar";
 import Footer from "@/components/footer/footer";
@@ -29,7 +30,7 @@ export const metadata: Metadata = {
     siteName: "RG Cabs Perth",
     images: [
       {
-        url: "https://rgcabsperth.com.au/og-image.jpg", // Replace with real image
+        url: "https://rgcabsperth.com.au/og-image.jpg",
         width: 1200,
         height: 630,
         alt: "RG Cabs Perth",
@@ -55,6 +56,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
+      <Script
+        src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`}
+        strategy="beforeInteractive"
+      />
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <Navbar />
         {children}

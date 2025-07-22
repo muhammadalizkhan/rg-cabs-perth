@@ -1,104 +1,165 @@
 "use client"
 
 import type React from "react"
+
 import { useState, useRef, useEffect } from "react"
-import { MapPin, Navigation, Loader2, X, Search } from "lucide-react"
+import { MapPin, Navigation, Loader2, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import type { LocationDetails, LocationInputType } from "@/types/location"
-import { LocationServices } from "@/utils/location-services"
+import { GoogleMapsLoader } from "@/lib/googlemaps"
+import type { LocationData } from "@/types/location"
 
 interface LocationInputProps {
   label: string
-  type: LocationInputType
-  value: LocationDetails | null
-  onChange: (location: LocationDetails | null) => void
+  value: LocationData | null
+  onChange: (location: LocationData | null) => void
   placeholder: string
-  disabled?: boolean
   showCurrentLocation?: boolean
-  className?: string
+  icon?: React.ReactNode
 }
 
 export function LocationInput({
   label,
-  type,
   value,
   onChange,
   placeholder,
-  disabled = false,
-  showCurrentLocation = true,
-  className = "",
+  showCurrentLocation = false,
+  icon,
 }: LocationInputProps) {
   const inputRef = useRef<HTMLInputElement>(null)
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null)
   const [inputValue, setInputValue] = useState(value?.address || "")
   const [isLoading, setIsLoading] = useState(false)
-  const [isGoogleMapsLoaded, setIsGoogleMapsLoaded] = useState(false)
-  const [isGettingLocation, setIsGettingLocation] = useState(false)
-  const [suggestions, setSuggestions] = useState<LocationDetails[]>([])
-  const [showSuggestions, setShowSuggestions] = useState(false)
-  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null)
+  const [isReady, setIsReady] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
+  // Update input when value changes
   useEffect(() => {
     setInputValue(value?.address || "")
   }, [value])
 
+  // Initialize Google Maps and Autocomplete
   useEffect(() => {
-    const loadGoogleMaps = () => {
-      if (window.google && window.google.maps) {
-        setIsGoogleMapsLoaded(true)
-        LocationServices.initializeServices()
-        return
-      }
+    const initializeAutocomplete = async () => {
+      try {
+        setIsLoading(true)
+        await GoogleMapsLoader.load()
 
-      if (!document.querySelector('script[src*="maps.googleapis.com"]')) {
-        const script = document.createElement("script")
-        const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+        if (!inputRef.current) return
 
-        if (!apiKey) {
-          console.error("Google Maps API key is missing")
-          return
-        }
+        // Create autocomplete with Perth bounds
+        autocompleteRef.current = new google.maps.places.Autocomplete(inputRef.current, {
+          types: ["establishment", "geocode"],
+          componentRestrictions: { country: "au" },
+          bounds: new google.maps.LatLngBounds(
+            new google.maps.LatLng(-32.3, 115.5), // SW Perth
+            new google.maps.LatLng(-31.6, 116.2), // NE Perth
+          ),
+          strictBounds: true,
+          fields: ["place_id", "formatted_address", "geometry", "name"],
+        })
 
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initGoogleMaps`
-        script.async = true
-        script.defer = true
+        // Listen for place selection
+        autocompleteRef.current.addListener("place_changed", () => {
+          const place = autocompleteRef.current?.getPlace()
 
-        window.initGoogleMaps = () => {
-          setIsGoogleMapsLoaded(true)
-          LocationServices.initializeServices()
-        }
+          if (place && place.geometry && place.geometry.location) {
+            const location: LocationData = {
+              address: place.formatted_address || place.name || "",
+              lat: place.geometry.location.lat(),
+              lng: place.geometry.location.lng(),
+              placeId: place.place_id,
+            }
 
-        script.onerror = () => {
-          console.error("Failed to load Google Maps API")
-        }
+            // Check if it's in Perth area
+            if (isInPerth(location.lat, location.lng)) {
+              onChange(location)
+              setInputValue(location.address)
+              setError(null)
+            } else {
+              setError("Please select a location within Perth metropolitan area")
+              setInputValue("")
+              onChange(null)
+            }
+          }
+        })
 
-        document.head.appendChild(script)
+        setIsReady(true)
+        setError(null)
+      } catch (err) {
+        setError("Failed to load location services")
+        console.error("Google Maps initialization error:", err)
+      } finally {
+        setIsLoading(false)
       }
     }
 
-    loadGoogleMaps()
-  }, [])
+    initializeAutocomplete()
 
-  // Search for places
-  const searchPlaces = async (query: string) => {
-    if (!query.trim() || query.length < 3) {
-      setSuggestions([])
-      setShowSuggestions(false)
+    return () => {
+      if (autocompleteRef.current) {
+        google.maps.event.clearInstanceListeners(autocompleteRef.current)
+      }
+    }
+  }, [onChange])
+
+  const isInPerth = (lat: number, lng: number): boolean => {
+    return lat >= -32.3 && lat <= -31.6 && lng >= 115.5 && lng <= 116.2
+  }
+
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setError("Geolocation is not supported")
       return
     }
 
     setIsLoading(true)
-    try {
-      const results = await LocationServices.searchPlaces(query)
-      setSuggestions(results)
-      setShowSuggestions(results.length > 0)
-    } catch (error) {
-      console.error("Error searching places:", error)
-      setSuggestions([])
-    } finally {
-      setIsLoading(false)
-    }
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords
+
+        if (!isInPerth(latitude, longitude)) {
+          setError("Your current location is outside Perth area")
+          setIsLoading(false)
+          return
+        }
+
+        try {
+          const geocoder = new google.maps.Geocoder()
+          const result = await new Promise<google.maps.GeocoderResult[]>((resolve, reject) => {
+            geocoder.geocode({ location: { lat: latitude, lng: longitude } }, (results, status) => {
+              if (status === "OK" && results) {
+                resolve(results)
+              } else {
+                reject(new Error("Geocoding failed"))
+              }
+            })
+          })
+
+          if (result[0]) {
+            const location: LocationData = {
+              address: result[0].formatted_address,
+              lat: latitude,
+              lng: longitude,
+              placeId: result[0].place_id,
+            }
+            onChange(location)
+            setInputValue(location.address)
+            setError(null)
+          }
+        } catch (err) {
+          setError("Failed to get address for current location")
+        } finally {
+          setIsLoading(false)
+        }
+      },
+      (error) => {
+        setError("Unable to get your location")
+        setIsLoading(false)
+      },
+      { enableHighAccuracy: true, timeout: 10000 },
+    )
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -106,91 +167,20 @@ export function LocationInput({
     setInputValue(newValue)
 
     if (newValue !== value?.address) {
-      onChange(null) // Clear the location details when user types
-    }
-
-    // Clear existing timeout
-    if (searchTimeout) {
-      clearTimeout(searchTimeout)
-    }
-
-    // Set new timeout for search
-    const timeout = setTimeout(() => {
-      searchPlaces(newValue)
-    }, 500)
-
-    setSearchTimeout(timeout)
-  }
-
-  const handleSuggestionClick = (suggestion: LocationDetails) => {
-    setInputValue(suggestion.address)
-    onChange(suggestion)
-    setShowSuggestions(false)
-    setSuggestions([])
-  }
-
-  const handleCurrentLocation = async () => {
-    setIsGettingLocation(true)
-    try {
-      const coordinates = await LocationServices.getCurrentLocation()
-
-      // Ensure coordinates is of the correct type expected by isPerthLocation
-      if (LocationServices.isPerthLocation && typeof LocationServices.isPerthLocation === "function") {
-        if (LocationServices.isPerthLocation(coordinates as any)) {
-          const locationDetails = await LocationServices.reverseGeocode(coordinates)
-          if (locationDetails) {
-            onChange(locationDetails)
-            setInputValue(locationDetails.address)
-          }
-        } else {
-          alert("Your current location is outside our service area (Perth metropolitan area).")
-        }
-      }
-    } catch (error) {
-      console.error("Error getting current location:", error)
-      alert(error instanceof Error ? error.message : "Unable to get your current location.")
-    } finally {
-      setIsGettingLocation(false)
+      onChange(null)
     }
   }
 
-  const handleClear = () => {
+  const clearInput = () => {
     setInputValue("")
     onChange(null)
-    setSuggestions([])
-    setShowSuggestions(false)
-  }
-
-  const handleInputFocus = () => {
-    if (suggestions.length > 0) {
-      setShowSuggestions(true)
-    }
-  }
-
-  const handleInputBlur = () => {
-    // Delay hiding suggestions to allow for clicks
-    setTimeout(() => {
-      setShowSuggestions(false)
-    }, 200)
-  }
-
-  const getIcon = () => {
-    switch (type) {
-      case "pickup":
-        return <MapPin className="h-5 w-5 text-green-600" />
-      case "destination":
-        return <Navigation className="h-5 w-5 text-red-600" />
-      case "stop":
-        return <MapPin className="h-5 w-5 text-orange-600" />
-      default:
-        return <MapPin className="h-5 w-5 text-gray-600" />
-    }
+    setError(null)
   }
 
   return (
-    <div className={`space-y-3 ${className}`}>
+    <div className="space-y-3">
       <Label className="text-lg font-bold text-gray-900 flex items-center gap-3">
-        {getIcon()}
+        {icon || <MapPin className="h-5 w-5 text-teal-600" />}
         {label}
       </Label>
 
@@ -201,50 +191,20 @@ export function LocationInput({
             type="text"
             value={inputValue}
             onChange={handleInputChange}
-            onFocus={handleInputFocus}
-            onBlur={handleInputBlur}
-            placeholder={isGoogleMapsLoaded ? placeholder : "Loading Google Maps..."}
-            disabled={disabled || !isGoogleMapsLoaded}
-            className="h-14 text-base font-semibold bg-white border-2 border-gray-400 text-gray-900 placeholder:text-gray-600 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 transition-all duration-200 shadow-sm pr-20"
+            placeholder={isReady ? placeholder : "Loading..."}
+            disabled={!isReady}
+            className="h-14 text-base font-semibold bg-white border-2 border-gray-400 pr-10"
           />
 
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
-            {isLoading && <Loader2 className="h-5 w-5 text-gray-500 animate-spin" />}
-            {!isLoading && inputValue && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={handleClear}
-                className="h-6 w-6 p-0 hover:bg-gray-100"
-              >
-                <X className="h-4 w-4 text-gray-500" />
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+            {isLoading ? (
+              <Loader2 className="h-5 w-5 animate-spin text-gray-500" />
+            ) : inputValue ? (
+              <Button type="button" variant="ghost" size="sm" onClick={clearInput} className="h-6 w-6 p-0">
+                <X className="h-4 w-4" />
               </Button>
-            )}
-            <Search className="h-4 w-4 text-gray-400" />
+            ) : null}
           </div>
-
-          {/* Suggestions Dropdown */}
-          {showSuggestions && suggestions.length > 0 && (
-            <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border-2 border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-              {suggestions.map((suggestion, index) => (
-                <button
-                  key={`${suggestion.placeId}-${index}`}
-                  type="button"
-                  onClick={() => handleSuggestionClick(suggestion)}
-                  className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 focus:bg-gray-50 focus:outline-none"
-                >
-                  <div className="flex items-start gap-3">
-                    <MapPin className="h-4 w-4 text-gray-400 mt-1 flex-shrink-0" />
-                    <div>
-                      <div className="font-medium text-gray-900">{suggestion.name || "Location"}</div>
-                      <div className="text-sm text-gray-600">{suggestion.address}</div>
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
         </div>
 
         {showCurrentLocation && (
@@ -252,25 +212,24 @@ export function LocationInput({
             type="button"
             variant="outline"
             size="lg"
-            onClick={handleCurrentLocation}
-            disabled={isGettingLocation || !isGoogleMapsLoaded}
-            className="h-14 px-4 border-2 border-gray-400 hover:border-teal-500 hover:bg-teal-50 bg-transparent"
-            title="Use current location"
+            onClick={getCurrentLocation}
+            disabled={!isReady || isLoading}
+            className="h-14 px-4 bg-transparent"
           >
-            {isGettingLocation ? <Loader2 className="h-5 w-5 animate-spin" /> : <Navigation className="h-5 w-5" />}
+            <Navigation className="h-5 w-5" />
           </Button>
         )}
       </div>
 
-      {!isGoogleMapsLoaded && (
-        <div className="text-sm text-amber-600 bg-amber-50 p-2 rounded border border-amber-200">
-          Loading Google Maps... Please ensure you have a stable internet connection.
-        </div>
-      )}
+      {error && <div className="text-sm text-red-600 bg-red-50 p-2 rounded border border-red-200">{error}</div>}
 
       {value && (
-        <div className="text-xs text-green-600 bg-green-50 p-2 rounded border border-green-200">
-          ✓ Location confirmed: {value.address}
+        <div className="text-sm text-green-600 bg-green-50 p-2 rounded border border-green-200">✓ {value.address}</div>
+      )}
+
+      {!isReady && !error && (
+        <div className="text-sm text-blue-600 bg-blue-50 p-2 rounded border border-blue-200">
+          Loading location services...
         </div>
       )}
     </div>
