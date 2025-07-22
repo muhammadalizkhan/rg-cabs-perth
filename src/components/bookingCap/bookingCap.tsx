@@ -202,7 +202,7 @@ export default function BookingSystem() {
             const geocoder = new window.google.maps.Geocoder() // Updated line
             const latlng = { lat: latitude, lng: longitude }
 
-            geocoder.geocode({ location: latlng }, (results, status) => {
+            geocoder.geocode({ location: latlng }, (results: { formatted_address: any }[], status: string) => {
               if (status === "OK" && results && results[0]) {
                 setBookingData((prev) => ({ ...prev, pickup: results[0].formatted_address }))
               } else {
