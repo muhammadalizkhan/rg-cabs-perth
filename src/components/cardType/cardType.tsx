@@ -1,6 +1,6 @@
 "use client"
 
-import { Car, Users, Check } from "lucide-react"
+import { Car } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { VehicleType } from "@/types/location"
 
@@ -10,28 +10,11 @@ interface VehicleTypeCardProps {
 }
 
 const vehicleTypes: VehicleType[] = [
-  {
-    id: "1",
-    name: "Card 1",
-  },
-  {
-    id: "2",
-    name: "Card Two",
-  
-  },
-  {
-    id: "3",
-    name: "Card 3",
-   
-  },
-  {
-    id: "4",
-    name: "Card Four"
-  },
-    {
-        id: "5",
-        name: "Other",
-    },
+  { id: "1", name: "Paying Driver" },
+  { id: "2", name: "PTTS Card" },
+  { id: "3", name: "Cabcharge" },
+  { id: "4", name: "Credit Card" },
+  { id: "5", name: "Cash" },
 ]
 
 export function VehicleTypeCard({ selectedVehicle, onChange }: VehicleTypeCardProps) {
@@ -40,40 +23,30 @@ export function VehicleTypeCard({ selectedVehicle, onChange }: VehicleTypeCardPr
       <CardHeader className="pb-4">
         <CardTitle className="text-lg font-semibold text-black flex items-center gap-2">
           <Car className="h-5 w-5 text-black" />
-          Select Card type
+          Select Payment Method
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid md:grid-cols-2 gap-4">
+      <CardContent>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {vehicleTypes.map((vehicle) => (
-            <div
+            <button
               key={vehicle.id}
               onClick={() => onChange(vehicle)}
-              className={`relative cursor-pointer rounded-lg border-2 p-4 transition-all duration-200 hover:shadow-md ${
-                selectedVehicle?.id === vehicle.id ? "border-black bg-gray-50" : "border-gray-300 hover:border-gray-400"
+              type="button"
+              className={`w-full py-3 px-4 text-sm font-medium rounded-lg border transition-all duration-150 ${
+                selectedVehicle?.id === vehicle.id
+                  ? "border-black bg-gray-100 text-black"
+                  : "border-gray-300 text-gray-600 hover:border-black"
               }`}
             >
-              {selectedVehicle?.id === vehicle.id && (
-                <div className="absolute top-2 right-2 w-6 h-6 bg-black rounded-full flex items-center justify-center">
-                  <Check className="h-4 w-4 text-white" />
-                </div>
-              )}
-
-              <div className="space-y-3">
-               
-                <div>
-                  <h3 className="font-semibold text-black text-base">{vehicle.name}</h3>
-                </div>
-              </div>
-            </div>
+              {vehicle.name}
+            </button>
           ))}
         </div>
 
         {selectedVehicle && (
-          <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-200">
-            <p className="text-sm text-green-800 font-medium">
-              ✓ Selected: {selectedVehicle.name}
-            </p>
+          <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-200 text-sm text-green-800 font-medium">
+            ✓ Selected: {selectedVehicle.name}
           </div>
         )}
       </CardContent>

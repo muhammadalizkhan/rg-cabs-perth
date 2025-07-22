@@ -262,12 +262,13 @@ export default function PerthAirportTransfers() {
                         <span className="text-lg text-black">{item.cost}</span>
                       </TableCell>
                       <TableCell className="px-4 py-3 text-right">
-                        <Button
-                          className="bg-yellow-400 hover:bg-yellow-500 text-black rounded-lg px-4 py-2 font-semibold transition-all hover:shadow-md"
-                          size="sm"
-                        >
-                          Book Now
-                        </Button>
+                      <button
+                onClick={() => router.push('/BookNow')}
+                className="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black px-8 py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group"
+              >
+                Book Now
+                <ArrowRight className="ml-2 h-5 w-5 inline group-hover:translate-x-1 transition-transform duration-300" />
+              </button>
                       </TableCell>
                     </TableRow>
                   ))}
