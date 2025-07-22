@@ -238,7 +238,7 @@ export default function BookingCap() {
                       <p className="text-sm text-gray-600">Add a return journey</p>
                     </div>
                   </div>
-                  <Switch checked={hasReturnTrip} onCheckedChange={handleReturnTripToggle} />
+                  <Switch onCheckedChange={(checked) => setHasReturnTrip(checked)} />
                 </div>
               </CardContent>
             </Card>
