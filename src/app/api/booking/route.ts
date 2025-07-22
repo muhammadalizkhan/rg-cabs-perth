@@ -26,7 +26,8 @@ export async function POST(req: NextRequest) {
       console.error("Missing email configuration for booking service.")
       return NextResponse.json({ error: "Email service not configured for bookings." }, { status: 500 })
     }
-const transporter = nodemailer.createTransport({
+        const transporter = nodemailer.createTransport({
+    
   service: "gmail",
   auth: {
     user: process.env.EMAIL_USER,
