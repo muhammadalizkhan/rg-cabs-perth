@@ -34,21 +34,17 @@ export default function BookingCap() {
   const [phone, setPhone] = useState("")
   const [specialRequests, setSpecialRequests] = useState("")
 
-  // UI states
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitMessage, setSubmitMessage] = useState("")
 
-  // Check if API key is configured
   const isApiKeyConfigured = !!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
 
-  // Get tomorrow's date as minimum date
   const getTomorrowDate = () => {
     const tomorrow = new Date()
     tomorrow.setDate(tomorrow.getDate() + 1)
     return tomorrow.toISOString().split("T")[0]
   }
 
-  // Generate time options
   const generateTimeOptions = () => {
     const times = []
     for (let hour = 6; hour < 24; hour++) {
@@ -60,7 +56,6 @@ export default function BookingCap() {
     return times
   }
 
-  // Validate form
   const validateForm = () => {
     if (!pickup || !destination) return "Please select pickup and destination locations"
     if (!date || !time) return "Please select date and time"
@@ -69,7 +64,6 @@ export default function BookingCap() {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "Please enter a valid email address"
     if (!/^[+]?[0-9\s\-$$$$]{8,}$/.test(phone)) return "Please enter a valid phone number"
 
-    // Validate stops
     for (const stop of stops) {
       if (!stop.isValid && stop.location === null) {
         return "Please complete all stop locations or remove empty stops"
@@ -79,7 +73,6 @@ export default function BookingCap() {
     return null
   }
 
-  // Submit booking
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -134,7 +127,6 @@ export default function BookingCap() {
 
       if (response.ok) {
         setSubmitMessage("✅ Booking request sent successfully! We will contact you shortly to confirm.")
-        // Reset form
         setPickup(null)
         setDestination(null)
         setStops([])
@@ -149,11 +141,11 @@ export default function BookingCap() {
         setSpecialRequests("")
         setRouteInfo(null)
       } else {
-        setSubmitMessage(`❌ ${result.error || "Failed to send booking request. Please try again."}`)
+        setSubmitMessage(`${result.error || "Failed to send booking request. Please try again."}`)
       }
     } catch (error) {
       console.error("Booking submission error:", error)
-      setSubmitMessage("❌ Failed to send booking request. Please check your connection and try again.")
+      setSubmitMessage("Failed to send booking request. Please check your connection and try again.")
     } finally {
       setIsSubmitting(false)
     }
