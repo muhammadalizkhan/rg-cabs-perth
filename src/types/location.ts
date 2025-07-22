@@ -30,6 +30,19 @@ export interface TripData {
   stops: Stop[]
 }
 
+export interface ReturnTripData {
+  pickup: LocationData | null
+  destination: LocationData | null
+  stops: Stop[]
+  date: string
+  time: string
+}
+
+export interface VehicleType {
+  id: string
+  name: string
+}
+
 export interface RouteData {
   distance: string
   duration: string
@@ -64,12 +77,13 @@ export interface BookingData {
       address: string
       coordinates: LocationCoordinates
     }>
+    date: string
+    time: string
   } | null
   hasReturnTrip: boolean
+  vehicleType: VehicleType
   date: string
   time: string
-  returnDate?: string | null
-  returnTime?: string | null
   passengers: number
   firstName: string
   lastName: string
@@ -81,7 +95,6 @@ export interface BookingData {
 
 export type LocationInputType = "pickup" | "destination" | "stop"
 
-// Form validation types
 export interface ValidationError {
   field: string
   message: string
@@ -92,7 +105,6 @@ export interface FormState {
   errors: ValidationError[]
 }
 
-// API response types
 export interface BookingResponse {
   success: boolean
   message: string

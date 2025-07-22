@@ -9,10 +9,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
 import { TripSection } from "@/components/bookingTrip/bookingTrip"
 import { RouteMap } from "@/components/routeMap/routeMap"
-import type { TripData, RouteData } from "@/types/location"
+import type { ReturnTripData, TripData, RouteData, VehicleType } from "@/types/location"
+import { SimpleSwitch } from "../ui/simple-switch"
+import { ReturnTripSection } from "@/components/returnTrip/returnTrip"
+import { VehicleTypeCard } from "@/components/cardType/cardType"
 
 
 export default function BookingCap() {
@@ -23,18 +25,20 @@ export default function BookingCap() {
   })
 
   const [hasReturnTrip, setHasReturnTrip] = useState(false)
-  const [returnTrip, setReturnTrip] = useState<TripData>({
+  const [returnTrip, setReturnTrip] = useState<ReturnTripData>({
     pickup: null,
     destination: null,
     stops: [],
+    date: "",
+    time: "",
   })
 
+  const [selectedVehicle, setSelectedVehicle] = useState<VehicleType | null>(null)
   const [routeData, setRouteData] = useState<RouteData | null>(null)
 
+  // Form states
   const [date, setDate] = useState("")
   const [time, setTime] = useState("")
-  const [returnDate, setReturnDate] = useState("")
-  const [returnTime, setReturnTime] = useState("")
   const [passengers, setPassengers] = useState("")
   const [firstName, setFirstName] = useState("")
   const [lastName, setLastName] = useState("")
@@ -42,9 +46,11 @@ export default function BookingCap() {
   const [phone, setPhone] = useState("")
   const [specialRequests, setSpecialRequests] = useState("")
 
+  // UI states
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [message, setMessage] = useState("")
 
+  // Check API key
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
   if (!apiKey) {
     return (
@@ -88,17 +94,34 @@ export default function BookingCap() {
 
   const handleReturnTripToggle = (checked: boolean) => {
     setHasReturnTrip(checked)
-    if (checked && outboundTrip.pickup && outboundTrip.destination) {
-      setReturnTrip({
-        pickup: outboundTrip.destination,
-        destination: outboundTrip.pickup,
-        stops: [],
-      })
+
+    if (checked) {
+      // Auto-populate return trip with reversed locations if outbound trip is complete
+      if (outboundTrip.pickup && outboundTrip.destination) {
+        setReturnTrip({
+          pickup: outboundTrip.destination,
+          destination: outboundTrip.pickup,
+          stops: [],
+          date: "",
+          time: "",
+        })
+      } else {
+        setReturnTrip({
+          pickup: null,
+          destination: null,
+          stops: [],
+          date: "",
+          time: "",
+        })
+      }
     } else {
+      // Clear return trip data
       setReturnTrip({
         pickup: null,
         destination: null,
         stops: [],
+        date: "",
+        time: "",
       })
     }
   }
@@ -111,18 +134,18 @@ export default function BookingCap() {
       return
     }
 
-    if (hasReturnTrip && (!returnTrip.pickup || !returnTrip.destination)) {
-      setMessage("Please complete return trip locations")
+    if (!selectedVehicle) {
+      setMessage("Please select a vehicle type")
+      return
+    }
+
+    if (hasReturnTrip && (!returnTrip.pickup || !returnTrip.destination || !returnTrip.date || !returnTrip.time)) {
+      setMessage("Please complete all return trip details")
       return
     }
 
     if (!date || !time || !passengers) {
       setMessage("Please fill in all trip details")
-      return
-    }
-
-    if (hasReturnTrip && (!returnDate || !returnTime)) {
-      setMessage("Please fill in return trip date and time")
       return
     }
 
@@ -150,9 +173,9 @@ export default function BookingCap() {
         },
         returnTrip: hasReturnTrip
           ? {
-              pickup: returnTrip.pickup?.address,
+              pickup: returnTrip.pickup?.address || null,
               pickupCoordinates: returnTrip.pickup ? { lat: returnTrip.pickup.lat, lng: returnTrip.pickup.lng } : null,
-              destination: returnTrip.destination?.address,
+              destination: returnTrip.destination?.address || null,
               destinationCoordinates: returnTrip.destination
                 ? { lat: returnTrip.destination.lat, lng: returnTrip.destination.lng }
                 : null,
@@ -162,13 +185,14 @@ export default function BookingCap() {
                   address: s.location!.address,
                   coordinates: { lat: s.location!.lat, lng: s.location!.lng },
                 })),
+              date: returnTrip.date,
+              time: returnTrip.time,
             }
           : null,
         hasReturnTrip,
+        vehicleType: selectedVehicle,
         date,
         time,
-        returnDate: hasReturnTrip ? returnDate : null,
-        returnTime: hasReturnTrip ? returnTime : null,
         passengers: Number.parseInt(passengers),
         firstName,
         lastName,
@@ -188,13 +212,13 @@ export default function BookingCap() {
 
       if (response.ok) {
         setMessage("✅ Booking request sent successfully! We'll contact you shortly.")
+        // Reset form
         setOutboundTrip({ pickup: null, destination: null, stops: [] })
-        setReturnTrip({ pickup: null, destination: null, stops: [] })
+        setReturnTrip({ pickup: null, destination: null, stops: [], date: "", time: "" })
         setHasReturnTrip(false)
+        setSelectedVehicle(null)
         setDate("")
         setTime("")
-        setReturnDate("")
-        setReturnTime("")
         setPassengers("")
         setFirstName("")
         setLastName("")
@@ -221,6 +245,7 @@ export default function BookingCap() {
 
         <form onSubmit={handleSubmit} className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
+            {/* Outbound Trip */}
             <TripSection
               title="Outbound Trip"
               tripData={outboundTrip}
@@ -228,42 +253,56 @@ export default function BookingCap() {
               showCurrentLocation={true}
             />
 
+            <VehicleTypeCard selectedVehicle={selectedVehicle} onChange={setSelectedVehicle} />
+
+            {/* Return Trip Toggle */}
             <Card className="border-2 border-gray-200 bg-white shadow-sm">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <RotateCcw className="h-5 w-5 text-black" />
                     <div>
-                      <Label className="text-base font-semibold text-black">Return Trip</Label>
+                      <Label className="text-base font-semibold text-black cursor-pointer">Return Trip</Label>
                       <p className="text-sm text-gray-600">Add a return journey</p>
                     </div>
                   </div>
-                  <Switch onCheckedChange={(checked) => setHasReturnTrip(checked)} />
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-gray-600">{hasReturnTrip ? "Yes" : "No"}</span>
+                    
+
+<SimpleSwitch
+  checked={hasReturnTrip}
+  onCheckedChange={(checked) => handleReturnTripToggle(checked)}
+/>
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
             {hasReturnTrip && (
-              <TripSection
-                title="Return Trip"
-                tripData={returnTrip}
-                onChange={setReturnTrip}
-                showCurrentLocation={false}
-              />
+              <div className="animate-in slide-in-from-top-2 duration-300">
+                <ReturnTripSection
+                  returnTripData={returnTrip}
+                  onChange={setReturnTrip}
+                  outboundTrip={outboundTrip}
+                  minDate={date || getTomorrowDate()}
+                />
+              </div>
             )}
 
+            {/* Outbound Date & Time */}
             <Card className="border-2 border-gray-200 bg-white shadow-sm">
               <CardHeader className="pb-4">
                 <CardTitle className="text-lg font-semibold text-black flex items-center gap-2">
                   <Clock className="h-5 w-5 text-black" />
-                  Schedule & Details
+                  Outbound Schedule & Details
                 </CardTitle>
               </CardHeader>
-              <CardContent className="grid md:grid-cols-2 gap-6">
+              <CardContent className="grid md:grid-cols-3 gap-6">
                 <div className="space-y-3">
                   <Label className="text-base font-semibold text-black flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-black" />
-                    Outbound Date
+                    Date
                   </Label>
                   <Input
                     type="date"
@@ -278,7 +317,7 @@ export default function BookingCap() {
                 <div className="space-y-3">
                   <Label className="text-base font-semibold text-black flex items-center gap-2">
                     <Clock className="h-4 w-4 text-black" />
-                    Outbound Time
+                    Time
                   </Label>
                   <Select value={time} onValueChange={setTime} required>
                     <SelectTrigger className="h-12 text-sm font-medium bg-white border-2 border-gray-300 text-black hover:border-gray-400 focus:border-black transition-all duration-200">
@@ -293,44 +332,6 @@ export default function BookingCap() {
                     </SelectContent>
                   </Select>
                 </div>
-
-                {hasReturnTrip && (
-                  <>
-                    <div className="space-y-3">
-                      <Label className="text-base font-semibold text-black flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-black" />
-                        Return Date
-                      </Label>
-                      <Input
-                        type="date"
-                        value={returnDate}
-                        onChange={(e) => setReturnDate(e.target.value)}
-                        min={date || getTomorrowDate()}
-                        className="h-12 text-sm font-medium bg-white border-2 border-gray-300 text-black hover:border-gray-400 focus:border-black transition-all duration-200"
-                        required={hasReturnTrip}
-                      />
-                    </div>
-
-                    <div className="space-y-3">
-                      <Label className="text-base font-semibold text-black flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-black" />
-                        Return Time
-                      </Label>
-                      <Select value={returnTime} onValueChange={setReturnTime} required={hasReturnTrip}>
-                        <SelectTrigger className="h-12 text-sm font-medium bg-white border-2 border-gray-300 text-black hover:border-gray-400 focus:border-black transition-all duration-200">
-                          <SelectValue placeholder="Select return time" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white border-2 border-gray-200">
-                          {generateTimeOptions().map((t) => (
-                            <SelectItem key={t} value={t} className="text-black hover:bg-gray-50 focus:bg-gray-50">
-                              {t}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </>
-                )}
 
                 <div className="space-y-3">
                   <Label className="text-base font-semibold text-black flex items-center gap-2">
@@ -450,7 +451,7 @@ export default function BookingCap() {
 
                 <Button
                   type="submit"
-                  disabled={isSubmitting || !outboundTrip.pickup || !outboundTrip.destination}
+                  disabled={isSubmitting || !outboundTrip.pickup || !outboundTrip.destination || !selectedVehicle}
                   className="w-full h-14 text-base font-semibold bg-black hover:bg-gray-800 text-white transition-all duration-200 disabled:bg-gray-300 disabled:text-gray-500"
                 >
                   {isSubmitting ? (
@@ -461,7 +462,7 @@ export default function BookingCap() {
                   ) : (
                     <>
                       <Send className="h-5 w-5 mr-3" />
-                      Book Transfer
+                      Book {hasReturnTrip ? "Round Trip" : "One Way"} Transfer
                     </>
                   )}
                 </Button>
@@ -476,11 +477,16 @@ export default function BookingCap() {
             </Card>
           </div>
 
+          {/* Route Map */}
           <div className="lg:col-span-1">
             <div className="sticky top-8">
               <RouteMap
                 outboundTrip={outboundTrip}
-                returnTrip={hasReturnTrip ? returnTrip : null}
+                returnTrip={
+                  hasReturnTrip
+                    ? { pickup: returnTrip.pickup, destination: returnTrip.destination, stops: returnTrip.stops }
+                    : null
+                }
                 onRouteChange={setRouteData}
               />
             </div>
@@ -490,3 +496,4 @@ export default function BookingCap() {
     </div>
   )
 }
+

@@ -9,10 +9,9 @@ export async function POST(req: NextRequest) {
       outboundTrip,
       returnTrip,
       hasReturnTrip,
+      vehicleType,
       date,
       time,
-      returnDate,
-      returnTime,
       passengers,
       firstName,
       lastName,
@@ -27,8 +26,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing pickup or destination for outbound trip." }, { status: 400 })
     }
 
-    if (hasReturnTrip && returnTrip && (!returnTrip.pickup || !returnTrip.destination)) {
-      return NextResponse.json({ error: "Missing pickup or destination for return trip." }, { status: 400 })
+    if (!vehicleType) {
+      return NextResponse.json({ error: "Please select a vehicle type." }, { status: 400 })
+    }
+
+    if (
+      hasReturnTrip &&
+      returnTrip &&
+      (!returnTrip.pickup || !returnTrip.destination || !returnTrip.date || !returnTrip.time)
+    ) {
+      return NextResponse.json({ error: "Missing return trip details." }, { status: 400 })
     }
 
     if (!date || !time || !passengers || !firstName || !lastName || !email || !phone) {
@@ -58,8 +65,8 @@ export async function POST(req: NextRequest) {
     })
 
     const formattedReturnDate =
-      hasReturnTrip && returnDate
-        ? new Date(returnDate).toLocaleDateString("en-AU", {
+      hasReturnTrip && returnTrip?.date
+        ? new Date(returnTrip.date).toLocaleDateString("en-AU", {
             weekday: "long",
             year: "numeric",
             month: "long",
@@ -102,16 +109,24 @@ export async function POST(req: NextRequest) {
           <p style="margin-bottom: 10px;"><strong>Return Pickup:</strong> ${returnTrip.pickup}</p>
           <p style="margin-bottom: 10px;"><strong>Return Destination:</strong> ${returnTrip.destination}</p>
           <p style="margin-bottom: 10px;"><strong>Return Date:</strong> ${formattedReturnDate}</p>
-          <p style="margin-bottom: 10px;"><strong>Return Time:</strong> ${returnTime}</p>
+          <p style="margin-bottom: 10px;"><strong>Return Time:</strong> ${returnTrip.time}</p>
           ${returnStopsHtml}
         </div>
       `
         : ""
 
+    // Vehicle type HTML
+    const vehicleHtml = `
+      <h3 style="color: #333; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-top: 25px;">Vehicle Selection:</h3>
+      <div style="background-color: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <p style="margin-bottom: 10px;"><strong>Card Type:</strong> ${vehicleType.name}</p>
+      </div>
+    `
+
     const businessMailOptions = {
       from: process.env.EMAIL_USER,
       to: process.env.EMAIL_USER,
-      subject: `New ${hasReturnTrip ? "Round Trip" : "One Way"} Booking - ${firstName} ${lastName}`,
+      subject: `New ${hasReturnTrip ? "Round Trip" : "One Way"} Booking - ${firstName} ${lastName} (${vehicleType.name})`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 8px; overflow: hidden;">
           <div style="background: linear-gradient(135deg, #000000, #333333); padding: 25px; text-align: center;">
@@ -127,6 +142,8 @@ export async function POST(req: NextRequest) {
             <p style="margin-bottom: 10px;"><strong>Time:</strong> ${time}</p>
             <p style="margin-bottom: 10px;"><strong>Passengers:</strong> ${passengers}</p>
             ${outboundStopsHtml}
+            
+            ${vehicleHtml}
             
             ${returnTripHtml}
             
@@ -167,7 +184,7 @@ export async function POST(req: NextRequest) {
     const customerMailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
-      subject: `Your RG Cabs Perth Transfer Booking Confirmation ${hasReturnTrip ? "(Round Trip)" : "(One Way)"}`,
+      subject: `Your RG Cabs Perth Transfer Booking Confirmation ${hasReturnTrip ? "(Round Trip)" : "(One Way)"} - ${vehicleType.name}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 8px; overflow: hidden;">
           <div style="background: linear-gradient(135deg, #000000, #333333); padding: 25px; text-align: center;">
@@ -179,12 +196,17 @@ export async function POST(req: NextRequest) {
             <h2 style="color: #333; margin-top: 0;">Hi ${firstName}, your booking request is confirmed!</h2>
             
             <p style="color: #555; line-height: 1.6;">
-              Thank you for choosing RG Cabs. We've received your ${hasReturnTrip ? "round trip" : "one way"} booking request and will review it shortly.
+              Thank you for choosing RG Cabs. We've received your ${hasReturnTrip ? "round trip" : "one way"} booking request for a <strong>${vehicleType.name}</strong> and will review it shortly.
               You will receive a final confirmation or a call from us if more details are needed.
             </p>
             
             <div style="background-color: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0;">
               <h3 style="color: #333; margin-top: 0;">Your Trip Summary:</h3>
+              
+              <div style="background-color: #fff; padding: 15px; border-radius: 6px; margin-bottom: 15px; border-left: 4px solid #000;">
+                <h4 style="color: #333; margin: 0 0 10px 0;">Vehicle: ${vehicleType.name}</h4>
+              </div>
+              
               <div style="margin-bottom: 15px;">
                 <h4 style="color: #333; margin: 0 0 10px 0;">Outbound Journey:</h4>
                 <p style="margin-bottom: 5px;"><strong>From:</strong> ${outboundTrip.pickup}</p>
@@ -209,7 +231,7 @@ export async function POST(req: NextRequest) {
                   <p style="margin-bottom: 5px;"><strong>From:</strong> ${returnTrip.pickup}</p>
                   <p style="margin-bottom: 5px;"><strong>To:</strong> ${returnTrip.destination}</p>
                   <p style="margin-bottom: 5px;"><strong>Date:</strong> ${formattedReturnDate}</p>
-                  <p style="margin-bottom: 5px;"><strong>Time:</strong> ${returnTime}</p>
+                  <p style="margin-bottom: 5px;"><strong>Time:</strong> ${returnTrip.time}</p>
                   ${
                     returnTrip.stops.length > 0
                       ? `
