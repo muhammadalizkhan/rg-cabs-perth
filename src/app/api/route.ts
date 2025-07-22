@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
     const customerMailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
-      subject: "Thank you for contacting RG Cabs Perth Transfers",
+      subject: "Thank you for contacting RG Cabs Perth",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background: linear-gradient(135deg, #f59e0b, #f97316); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">

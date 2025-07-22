@@ -21,7 +21,6 @@ export async function POST(req: NextRequest) {
       routeInfo,
     } = bookingData
 
-    // Validation
     if (!outboundTrip?.pickup || !outboundTrip?.destination) {
       return NextResponse.json({ error: "Missing pickup or destination for outbound trip." }, { status: 400 })
     }
@@ -74,7 +73,6 @@ export async function POST(req: NextRequest) {
           })
         : null
 
-    // Generate stops HTML for outbound trip
     const outboundStopsHtml =
       outboundTrip.stops.length > 0
         ? `
@@ -87,7 +85,6 @@ export async function POST(req: NextRequest) {
       `
         : ""
 
-    // Generate stops HTML for return trip
     const returnStopsHtml =
       hasReturnTrip && returnTrip && returnTrip.stops.length > 0
         ? `
@@ -100,7 +97,6 @@ export async function POST(req: NextRequest) {
       `
         : ""
 
-    // Generate return trip HTML
     const returnTripHtml =
       hasReturnTrip && returnTrip
         ? `
@@ -115,7 +111,6 @@ export async function POST(req: NextRequest) {
       `
         : ""
 
-    // Vehicle type HTML
     const vehicleHtml = `
       <h3 style="color: #333; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-top: 25px;">Vehicle Selection:</h3>
       <div style="background-color: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
@@ -204,7 +199,7 @@ export async function POST(req: NextRequest) {
               <h3 style="color: #333; margin-top: 0;">Your Trip Summary:</h3>
               
               <div style="background-color: #fff; padding: 15px; border-radius: 6px; margin-bottom: 15px; border-left: 4px solid #000;">
-                <h4 style="color: #333; margin: 0 0 10px 0;">Vehicle: ${vehicleType.name}</h4>
+                <h4 style="color: #333; margin: 0 0 10px 0;">Payment: ${vehicleType.name}</h4>
               </div>
               
               <div style="margin-bottom: 15px;">
