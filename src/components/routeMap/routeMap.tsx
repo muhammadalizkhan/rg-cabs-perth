@@ -2,12 +2,11 @@
 
 import { useEffect, useRef, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { MapPin, Navigation, Clock, Route, DollarSign } from "lucide-react"
+import { MapPin, Navigation, Clock, Route, DollarSign, AlertCircle } from "lucide-react"
 import type { LocationDetails, Stop, RouteInfo } from "@/types/location"
 import { LocationServices } from "@/utils/location-services"
 
-
-interface EnhancedRouteMapProps {
+interface RouteMapProps {
   pickup: LocationDetails | null
   destination: LocationDetails | null
   stops: Stop[]
@@ -15,75 +14,106 @@ interface EnhancedRouteMapProps {
   onRouteCalculated?: (routeInfo: RouteInfo | null) => void
 }
 
-export function EnhancedRouteMap({
+export function RouteMap({
   pickup,
   destination,
   stops,
   vehicleType = "sedan",
   onRouteCalculated,
-}: EnhancedRouteMapProps) {
+}: RouteMapProps) {
   const mapRef = useRef<HTMLDivElement>(null)
-  const mapInstanceRef = useRef<google.maps.Map | null>(null)
-  const directionsServiceRef = useRef<google.maps.DirectionsService | null>(null)
-  const directionsRendererRef = useRef<google.maps.DirectionsRenderer | null>(null)
+  const mapInstanceRef = useRef<any | null>(null)
+  const directionsServiceRef = useRef<any | null>(null)
+  const directionsRendererRef = useRef<any | null>(null)
   const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isMapLoaded, setIsMapLoaded] = useState(false)
 
   // Initialize map
   useEffect(() => {
-    if (!mapRef.current || !window.google) return
+    const initializeMap = async () => {
+      if (!mapRef.current) return
 
-    try {
-      mapInstanceRef.current = new window.google.maps.Map(mapRef.current, {
-        zoom: 11,
-        center: { lat: -31.9505, lng: 115.8605 }, // Perth center
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: false,
-        styles: [
-          {
-            featureType: "poi",
-            elementType: "labels",
-            stylers: [{ visibility: "off" }],
-          },
-        ],
-      })
+      // Wait for Google Maps to load
+      let attempts = 0
+      const maxAttempts = 50
 
-      directionsServiceRef.current = new window.google.maps.DirectionsService()
-      directionsRendererRef.current = new window.google.maps.DirectionsRenderer({
-        suppressMarkers: false,
-        polylineOptions: {
-          strokeColor: "#14b8a6",
-          strokeWeight: 4,
-          strokeOpacity: 0.8,
-        },
-        markerOptions: {
-          icon: {
-            url:
-              "data:image/svg+xml;charset=UTF-8," +
-              encodeURIComponent(`
-              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="16" cy="16" r="12" fill="#14b8a6" stroke="white" strokeWidth="4"/>
-                <circle cx="16" cy="16" r="4" fill="white"/>
-              </svg>
-            `),
-          },
-        },
-      })
-
-      if (directionsRendererRef.current) {
-        directionsRendererRef.current.setMap(mapInstanceRef.current)
+      const waitForGoogleMaps = () => {
+        return new Promise<void>((resolve, reject) => {
+          const checkGoogleMaps = () => {
+            attempts++
+            if (window.google && window.google.maps) {
+              resolve()
+            } else if (attempts >= maxAttempts) {
+              reject(new Error("Google Maps failed to load"))
+            } else {
+              setTimeout(checkGoogleMaps, 100)
+            }
+          }
+          checkGoogleMaps()
+        })
       }
-    } catch (error) {
-      console.error("Error initializing map:", error)
-      setError("Failed to initialize map")
+
+      try {
+        await waitForGoogleMaps()
+
+        mapInstanceRef.current = new window.google.maps.Map(mapRef.current, {
+          zoom: 11,
+          center: { lat: -31.9505, lng: 115.8605 }, // Perth center
+          mapTypeControl: false,
+          streetViewControl: false,
+          fullscreenControl: false,
+          zoomControl: true,
+          styles: [
+            {
+              featureType: "poi",
+              elementType: "labels",
+              stylers: [{ visibility: "off" }],
+            },
+            {
+              featureType: "transit",
+              elementType: "labels",
+              stylers: [{ visibility: "off" }],
+            },
+          ],
+        })
+
+        directionsServiceRef.current = new window.google.maps.DirectionsService()
+        directionsRendererRef.current = new window.google.maps.DirectionsRenderer({
+          suppressMarkers: false,
+          polylineOptions: {
+            strokeColor: "#14b8a6",
+            strokeWeight: 5,
+            strokeOpacity: 0.8,
+          },
+          markerOptions: {
+            icon: {
+              path: window.google.maps.SymbolPath.CIRCLE,
+              scale: 8,
+              fillColor: "#14b8a6",
+              fillOpacity: 1,
+              strokeColor: "#ffffff",
+              strokeWeight: 2,
+            },
+          },
+        })
+
+        directionsRendererRef.current.setMap(mapInstanceRef.current)
+        setIsMapLoaded(true)
+        setError(null)
+      } catch (error) {
+        console.error("Error initializing map:", error)
+        setError("Failed to load map. Please refresh the page.")
+      }
     }
+
+    initializeMap()
   }, [])
 
   // Calculate route when locations change
   useEffect(() => {
-    if (!pickup || !destination || !directionsServiceRef.current || !directionsRendererRef.current) {
+    if (!pickup || !destination || !directionsServiceRef.current || !directionsRendererRef.current || !isMapLoaded) {
       setRouteInfo(null)
       onRouteCalculated?.(null)
       return
@@ -99,7 +129,7 @@ export function EnhancedRouteMap({
         stopover: true,
       }))
 
-    const request = {
+    const request: any = {
       origin: new window.google.maps.LatLng(pickup.coordinates.lat, pickup.coordinates.lng),
       destination: new window.google.maps.LatLng(destination.coordinates.lat, destination.coordinates.lng),
       waypoints: validStops,
@@ -107,10 +137,10 @@ export function EnhancedRouteMap({
       unitSystem: window.google.maps.UnitSystem.METRIC,
       avoidHighways: false,
       avoidTolls: false,
-      optimizeWaypoints: true,
+      optimizeWaypoints: validStops.length > 1,
     }
 
-    directionsServiceRef.current.route(request, (result, status) => {
+    directionsServiceRef.current.route(request, (result: any, status: any) => {
       setIsLoading(false)
 
       if (status === "OK" && result) {
@@ -120,7 +150,7 @@ export function EnhancedRouteMap({
         let totalDistance = 0
         let totalDuration = 0
 
-        route.legs.forEach((leg) => {
+        route.legs.forEach((leg: any) => {
           totalDistance += leg.distance?.value || 0
           totalDuration += leg.duration?.value || 0
         })
@@ -140,15 +170,29 @@ export function EnhancedRouteMap({
         setRouteInfo(routeInfoData)
         onRouteCalculated?.(routeInfoData)
       } else {
-        const errorMessage =
-          status === "ZERO_RESULTS"
-            ? "No route found between the selected locations"
-            : "Could not calculate route. Please check your locations."
+        let errorMessage = "Could not calculate route. Please check your locations."
+
+        switch (status) {
+          case "ZERO_RESULTS":
+            errorMessage = "No route found between the selected locations"
+            break
+          case "OVER_QUERY_LIMIT":
+            errorMessage = "Too many requests. Please try again in a moment."
+            break
+          case "REQUEST_DENIED":
+            errorMessage = "Route request was denied. Please check API configuration."
+            break
+          case "INVALID_REQUEST":
+            errorMessage = "Invalid route request. Please check your locations."
+            break
+        }
+
         setError(errorMessage)
         onRouteCalculated?.(null)
+        console.error("Directions request failed:", status, result)
       }
     })
-  }, [pickup, destination, stops, vehicleType, onRouteCalculated])
+  }, [pickup, destination, stops, vehicleType, onRouteCalculated, isMapLoaded])
 
   if (!pickup || !destination) {
     return (
@@ -173,7 +217,17 @@ export function EnhancedRouteMap({
         {/* Map Container */}
         <div className="relative">
           <div ref={mapRef} className="w-full h-80 rounded-lg border-2 border-gray-200 bg-gray-100" />
-          {isLoading && (
+
+          {!isMapLoaded && (
+            <div className="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center rounded-lg">
+              <div className="text-center">
+                <div className="w-8 h-8 border-2 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                <p className="text-sm font-medium text-gray-700">Loading map...</p>
+              </div>
+            </div>
+          )}
+
+          {isLoading && isMapLoaded && (
             <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center rounded-lg">
               <div className="text-center">
                 <div className="w-8 h-8 border-2 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
@@ -181,9 +235,13 @@ export function EnhancedRouteMap({
               </div>
             </div>
           )}
+
           {error && (
             <div className="absolute inset-0 bg-red-50 bg-opacity-90 flex items-center justify-center rounded-lg">
-              <p className="text-sm font-medium text-red-700 text-center px-4">{error}</p>
+              <div className="text-center px-4">
+                <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-2" />
+                <p className="text-sm font-medium text-red-700">{error}</p>
+              </div>
             </div>
           )}
         </div>

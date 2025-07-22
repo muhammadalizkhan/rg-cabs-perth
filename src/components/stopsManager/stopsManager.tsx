@@ -13,7 +13,7 @@ interface StopsManagerProps {
 export function StopsManager({ stops, onChange, disabled = false }: StopsManagerProps) {
   const addStop = () => {
     const newStop: Stop = {
-      id: `stop-${Date.now()}`,
+      id: `stop-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       location: null,
       isValid: false,
     }
@@ -54,6 +54,7 @@ export function StopsManager({ stops, onChange, disabled = false }: StopsManager
                   onClick={() => removeStop(stop.id)}
                   disabled={disabled}
                   className="h-14 px-4 border-2 border-red-200 text-red-600 hover:border-red-400 hover:bg-red-50"
+                  title="Remove this stop"
                 >
                   <Trash2 className="h-5 w-5" />
                 </Button>

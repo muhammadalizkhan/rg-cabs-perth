@@ -1,9 +1,8 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
-import { Calendar, Clock, Users, Car, Phone, Mail, User, MessageSquare, Send } from "lucide-react"
+import { Calendar, Clock, Users, Car, Phone, Mail, User, MessageSquare, Send, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -12,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { LocationInput } from "@/components/locationInput/locationInput"
 import { StopsManager } from "@/components/stopsManager/stopsManager"
-import { EnhancedRouteMap } from "@/components/routeMap/routeMap"
+import { RouteMap } from "@/components/routeMap/routeMap"
 import type { LocationDetails, Stop, RouteInfo } from "@/types/location"
 
 export default function BookingCap() {
@@ -38,6 +37,9 @@ export default function BookingCap() {
   // UI states
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitMessage, setSubmitMessage] = useState("")
+
+  // Check if API key is configured
+  const isApiKeyConfigured = !!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
 
   // Get tomorrow's date as minimum date
   const getTomorrowDate = () => {
@@ -65,7 +67,7 @@ export default function BookingCap() {
     if (!vehicleType || !passengers) return "Please select vehicle type and passenger count"
     if (!firstName || !lastName || !email || !phone) return "Please fill in all customer details"
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "Please enter a valid email address"
-    if (!/^[+]?[1-9][\d]{0,15}$/.test(phone.replace(/\s/g, ""))) return "Please enter a valid phone number"
+    if (!/^[+]?[0-9\s\-$$$$]{8,}$/.test(phone)) return "Please enter a valid phone number"
 
     // Validate stops
     for (const stop of stops) {
@@ -131,7 +133,7 @@ export default function BookingCap() {
       const result = await response.json()
 
       if (response.ok) {
-        setSubmitMessage("Booking request sent successfully! We will contact you shortly to confirm.")
+        setSubmitMessage("✅ Booking request sent successfully! We will contact you shortly to confirm.")
         // Reset form
         setPickup(null)
         setDestination(null)
@@ -147,14 +149,39 @@ export default function BookingCap() {
         setSpecialRequests("")
         setRouteInfo(null)
       } else {
-        setSubmitMessage(result.error || "Failed to send booking request. Please try again.")
+        setSubmitMessage(`❌ ${result.error || "Failed to send booking request. Please try again."}`)
       }
     } catch (error) {
       console.error("Booking submission error:", error)
-      setSubmitMessage("Failed to send booking request. Please check your connection and try again.")
+      setSubmitMessage("❌ Failed to send booking request. Please check your connection and try again.")
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  if (!isApiKeyConfigured) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-4xl mx-auto px-4">
+          <Card className="border-2 border-red-300 bg-red-50">
+            <CardContent className="p-8 text-center">
+              <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-red-800 mb-4">Configuration Required</h2>
+              <p className="text-red-700 mb-4">
+                Google Maps API key is not configured. Please add your API key to the environment variables.
+              </p>
+              <div className="bg-red-100 p-4 rounded-lg text-left">
+                <p className="text-sm text-red-800 font-mono">
+                  Add to your .env.local file:
+                  <br />
+                  NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_api_key_here
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -365,7 +392,7 @@ export default function BookingCap() {
                 {submitMessage && (
                   <div
                     className={`mb-4 p-4 rounded-lg border-2 ${
-                      submitMessage.includes("successfully")
+                      submitMessage.includes("✅")
                         ? "bg-green-50 border-green-200 text-green-800"
                         : "bg-red-50 border-red-200 text-red-800"
                     }`}
@@ -405,7 +432,7 @@ export default function BookingCap() {
           {/* Right Column - Route Map */}
           <div className="lg:col-span-1">
             <div className="sticky top-8">
-              <EnhancedRouteMap
+              <RouteMap
                 pickup={pickup}
                 destination={destination}
                 stops={stops}
