@@ -1,583 +1,420 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import type React from "react"
+
+import { useState } from "react"
+import { Calendar, Clock, Users, Car, Phone, Mail, User, MessageSquare, Send } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
-import { GoogleMapsAutocomplete } from "@/components/googleMapsAutocomplete/googleMapsAutocomplete"
-import { RouteMap } from "@/components/routeMap/routeMap"
-import { LocationStops } from "./location-stops"
-import { MapPin, Navigation, Calendar, Clock, Users, Car, Phone, Mail, User, Plus, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
-import { toast } from "@/hooks/use-toast"
-
-interface LocationData {
-  address: string
-  coordinates: {
-    lat: number
-    lng: number
-  }
-  placeId?: string
-}
-
-interface Stop {
-  id: string
-  location: string
-  coordinates?: {
-    lat: number
-    lng: number
-  }
-  placeId?: string
-}
-
-interface BookingFormData {
-  pickup: LocationData | null
-  destination: LocationData | null
-  stops: Stop[]
-  date: string
-  time: string
-  vehicleType: string
-  passengers: string
-  firstName: string
-  lastName: string
-  email: string
-  phone: string
-  specialRequests: string
-}
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { LocationInput } from "@/components/locationInput/locationInput"
+import { StopsManager } from "@/components/stopsManager/stopsManager"
+import { EnhancedRouteMap } from "@/components/routeMap/routeMap"
+import type { LocationDetails, Stop, RouteInfo } from "@/types/location"
 
 export default function BookingCap() {
-  const [formData, setFormData] = useState<BookingFormData>({
-    pickup: null,
-    destination: null,
-    stops: [],
-    date: "",
-    time: "",
-    vehicleType: "",
-    passengers: "1",
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    specialRequests: ""
-  })
+  // Location states
+  const [pickup, setPickup] = useState<LocationDetails | null>(null)
+  const [destination, setDestination] = useState<LocationDetails | null>(null)
+  const [stops, setStops] = useState<Stop[]>([])
+  const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null)
 
+  // Booking details states
+  const [date, setDate] = useState("")
+  const [time, setTime] = useState("")
+  const [vehicleType, setVehicleType] = useState("")
+  const [passengers, setPassengers] = useState("")
+
+  // Customer details states
+  const [firstName, setFirstName] = useState("")
+  const [lastName, setLastName] = useState("")
+  const [email, setEmail] = useState("")
+  const [phone, setPhone] = useState("")
+  const [specialRequests, setSpecialRequests] = useState("")
+
+  // UI states
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
-  const [currentLocation, setCurrentLocation] = useState<LocationData | null>(null)
-  const [isGettingLocation, setIsGettingLocation] = useState(false)
+  const [submitMessage, setSubmitMessage] = useState("")
 
-  // Get current location
-  const getCurrentLocation = async () => {
-    if (!navigator.geolocation) {
-      toast({
-        title: "Location not supported",
-        description: "Your browser doesn't support location services",
-        variant: "destructive"
-      })
-      return
-    }
+  // Get tomorrow's date as minimum date
+  const getTomorrowDate = () => {
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    return tomorrow.toISOString().split("T")[0]
+  }
 
-    setIsGettingLocation(true)
-    
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude } = position.coords
-        
-        try {
-          // Reverse geocode to get address
-          const geocoder = new google.maps.Geocoder()
-          const response = await geocoder.geocode({
-            location: { lat: latitude, lng: longitude }
-          })
-
-          if (response.results[0]) {
-            const location: LocationData = {
-              address: response.results[0].formatted_address,
-              coordinates: { lat: latitude, lng: longitude },
-              placeId: response.results[0].place_id
-            }
-            setCurrentLocation(location)
-            toast({
-              title: "Location found",
-              description: "Current location detected successfully"
-            })
-          }
-        } catch (error) {
-          console.error("Geocoding error:", error)
-          toast({
-            title: "Location error",
-            description: "Could not get address for current location",
-            variant: "destructive"
-          })
-        } finally {
-          setIsGettingLocation(false)
-        }
-      },
-      (error) => {
-        setIsGettingLocation(false)
-        let message = "Could not get your location"
-        
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            message = "Location access denied. Please enable location permissions."
-            break
-          case error.POSITION_UNAVAILABLE:
-            message = "Location information unavailable"
-            break
-          case error.TIMEOUT:
-            message = "Location request timed out"
-            break
-        }
-        
-        toast({
-          title: "Location error",
-          description: message,
-          variant: "destructive"
-        })
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 300000
+  // Generate time options
+  const generateTimeOptions = () => {
+    const times = []
+    for (let hour = 6; hour < 24; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const timeString = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`
+        times.push(timeString)
       }
-    )
-  }
-
-  // Use current location for pickup
-  const useCurrentLocationForPickup = () => {
-    if (currentLocation) {
-      setFormData(prev => ({ ...prev, pickup: currentLocation }))
-      toast({
-        title: "Location set",
-        description: "Current location set as pickup"
-      })
     }
+    return times
   }
 
-  // Handle location changes
-  const handleLocationChange = (
-    field: 'pickup' | 'destination',
-    address: string,
-    placeDetails?: google.maps.places.PlaceResult
-  ) => {
-    const locationData: LocationData = {
-      address,
-      coordinates: placeDetails?.geometry?.location ? {
-        lat: placeDetails.geometry.location.lat(),
-        lng: placeDetails.geometry.location.lng()
-      } : { lat: 0, lng: 0 },
-      placeId: placeDetails?.place_id
+  // Validate form
+  const validateForm = () => {
+    if (!pickup || !destination) return "Please select pickup and destination locations"
+    if (!date || !time) return "Please select date and time"
+    if (!vehicleType || !passengers) return "Please select vehicle type and passenger count"
+    if (!firstName || !lastName || !email || !phone) return "Please fill in all customer details"
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "Please enter a valid email address"
+    if (!/^[+]?[1-9][\d]{0,15}$/.test(phone.replace(/\s/g, ""))) return "Please enter a valid phone number"
+
+    // Validate stops
+    for (const stop of stops) {
+      if (!stop.isValid && stop.location === null) {
+        return "Please complete all stop locations or remove empty stops"
+      }
     }
 
-    setFormData(prev => ({
-      ...prev,
-      [field]: locationData
-    }))
+    return null
   }
 
-  // Handle stops changes
-  const handleStopsChange = (stops: Stop[]) => {
-    setFormData(prev => ({ ...prev, stops }))
-  }
-
-  // Handle form submission
+  // Submit booking
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
-    if (!formData.pickup || !formData.destination) {
-      toast({
-        title: "Missing locations",
-        description: "Please select both pickup and destination locations",
-        variant: "destructive"
-      })
-      return
-    }
 
-    if (!formData.date || !formData.time || !formData.vehicleType) {
-      toast({
-        title: "Missing details",
-        description: "Please fill in all required booking details",
-        variant: "destructive"
-      })
-      return
-    }
-
-    if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone) {
-      toast({
-        title: "Missing contact info",
-        description: "Please fill in all contact information",
-        variant: "destructive"
-      })
+    const validationError = validateForm()
+    if (validationError) {
+      setSubmitMessage(validationError)
       return
     }
 
     setIsSubmitting(true)
-    setSubmitStatus('idle')
+    setSubmitMessage("")
 
     try {
       const bookingData = {
-        pickup: formData.pickup.address,
-        pickupCoordinates: formData.pickup.coordinates,
-        destination: formData.destination.address,
-        destinationCoordinates: formData.destination.coordinates,
-        stops: formData.stops.map(stop => ({
-          location: stop.location,
-          coordinates: stop.coordinates
-        })),
-        date: formData.date,
-        time: formData.time,
-        vehicleType: formData.vehicleType,
-        passengers: formData.passengers,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        phone: formData.phone,
-        specialRequests: formData.specialRequests
+        pickup: pickup!.address,
+        pickupCoordinates: pickup!.coordinates,
+        destination: destination!.address,
+        destinationCoordinates: destination!.coordinates,
+        stops: stops
+          .filter((stop) => stop.isValid)
+          .map((stop) => ({
+            address: stop.location!.address,
+            coordinates: stop.location!.coordinates,
+          })),
+        date,
+        time,
+        vehicleType,
+        passengers: Number.parseInt(passengers),
+        firstName,
+        lastName,
+        email,
+        phone,
+        specialRequests,
+        routeInfo: routeInfo
+          ? {
+              distance: routeInfo.totalDistanceKm,
+              duration: routeInfo.totalDurationMin,
+              estimatedFare: routeInfo.estimatedFare,
+            }
+          : null,
       }
 
-      const response = await fetch('/api/booking', {
-        method: 'POST',
+      const response = await fetch("/api/booking", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(bookingData)
+        body: JSON.stringify(bookingData),
       })
 
       const result = await response.json()
 
       if (response.ok) {
-        setSubmitStatus('success')
-        toast({
-          title: "Booking submitted!",
-          description: "We'll contact you shortly to confirm your booking"
-        })
-        
+        setSubmitMessage("Booking request sent successfully! We will contact you shortly to confirm.")
         // Reset form
-        setFormData({
-          pickup: null,
-          destination: null,
-          stops: [],
-          date: "",
-          time: "",
-          vehicleType: "",
-          passengers: "1",
-          firstName: "",
-          lastName: "",
-          email: "",
-          phone: "",
-          specialRequests: ""
-        })
+        setPickup(null)
+        setDestination(null)
+        setStops([])
+        setDate("")
+        setTime("")
+        setVehicleType("")
+        setPassengers("")
+        setFirstName("")
+        setLastName("")
+        setEmail("")
+        setPhone("")
+        setSpecialRequests("")
+        setRouteInfo(null)
       } else {
-        throw new Error(result.error || 'Booking failed')
+        setSubmitMessage(result.error || "Failed to send booking request. Please try again.")
       }
     } catch (error) {
-      setSubmitStatus('error')
-      toast({
-        title: "Booking failed",
-        description: error instanceof Error ? error.message : "Please try again or call us directly",
-        variant: "destructive"
-      })
+      console.error("Booking submission error:", error)
+      setSubmitMessage("Failed to send booking request. Please check your connection and try again.")
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  // Get minimum date (today)
-  const getMinDate = () => {
-    const today = new Date()
-    return today.toISOString().split('T')[0]
-  }
-
   return (
-    <div className="max-w-7xl mx-auto p-4 space-y-8">
-      <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold text-gray-900">Book Your Ride</h1>
-        <p className="text-xl text-gray-600">Premium transportation services across Perth</p>
-      </div>
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Book Your Perth Transfer</h1>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Professional transportation services throughout Perth metropolitan area. Book your ride with ease.
+          </p>
+        </div>
 
-      <div className="grid lg:grid-cols-2 gap-8">
-        {/* Booking Form */}
-        <Card className="border-2 border-gray-300 shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-2xl text-gray-900 flex items-center gap-2">
-              <Car className="h-6 w-6 text-teal-500" />
-              Booking Details
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Current Location Section */}
-              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-blue-900">Quick Location Access</h3>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={getCurrentLocation}
-                    disabled={isGettingLocation}
-                    className="border-blue-300 text-blue-700 hover:bg-blue-100"
-                  >
-                    {isGettingLocation ? (
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    ) : (
-                      <Navigation className="h-4 w-4 mr-2" />
-                    )}
-                    Get Current Location
-                  </Button>
-                </div>
-                
-                {currentLocation && (
-                  <div className="space-y-2">
-                    <p className="text-sm text-blue-800">
-                      <strong>Current location:</strong> {currentLocation.address}
-                    </p>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={useCurrentLocationForPickup}
-                      className="border-green-300 text-green-700 hover:bg-green-100"
-                    >
-                      <MapPin className="h-4 w-4 mr-2" />
-                      Use as Pickup
-                    </Button>
-                  </div>
-                )}
-              </div>
+        <form onSubmit={handleSubmit} className="grid lg:grid-cols-3 gap-8">
+          {/* Left Column - Booking Details */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Location Selection */}
+            <Card className="border-2 border-gray-300 bg-white shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-2xl text-gray-900 flex items-center gap-2">
+                  <Car className="h-6 w-6 text-teal-500" />
+                  Trip Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <LocationInput
+                  label="Pickup Location"
+                  type="pickup"
+                  value={pickup}
+                  onChange={setPickup}
+                  placeholder="Enter your pickup address in Perth"
+                  showCurrentLocation={true}
+                />
 
-              {/* Pickup Location */}
-              <GoogleMapsAutocomplete
-                label="Pickup Location"
-                value={formData.pickup?.address || ""}
-                onChange={(value, placeDetails) => handleLocationChange('pickup', value, placeDetails)}
-                placeholder="Enter pickup address in Perth"
-                icon={<MapPin className="h-5 w-5 text-teal-500" />}
-                types={['address', 'establishment', 'geocode']}
-              />
+                <StopsManager stops={stops} onChange={setStops} disabled={isSubmitting} />
 
-              {/* Stops */}
-              <LocationStops
-                stops={formData.stops}
-                onChange={handleStopsChange}
-              />
+                <LocationInput
+                  label="Destination"
+                  type="destination"
+                  value={destination}
+                  onChange={setDestination}
+                  placeholder="Enter your destination in Perth"
+                  showCurrentLocation={false}
+                />
+              </CardContent>
+            </Card>
 
-              {/* Destination Location */}
-              <GoogleMapsAutocomplete
-                label="Destination"
-                value={formData.destination?.address || ""}
-                onChange={(value, placeDetails) => handleLocationChange('destination', value, placeDetails)}
-                placeholder="Enter destination address in Perth"
-                icon={<Navigation className="h-5 w-5 text-red-500" />}
-                types={['address', 'establishment', 'geocode']}
-              />
-
-              {/* Date and Time */}
-              <div className="grid md:grid-cols-2 gap-4">
+            {/* Date, Time, and Vehicle Selection */}
+            <Card className="border-2 border-gray-300 bg-white shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-2xl text-gray-900 flex items-center gap-2">
+                  <Clock className="h-6 w-6 text-teal-500" />
+                  Schedule & Vehicle
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-3">
                   <Label className="text-lg font-bold text-gray-900 flex items-center gap-3">
-                    <Calendar className="h-5 w-5 text-teal-500" />
+                    <Calendar className="h-5 w-5 text-blue-600" />
                     Date
                   </Label>
                   <Input
                     type="date"
-                    value={formData.date}
-                    onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
-                    min={getMinDate()}
-                    required
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    min={getTomorrowDate()}
                     className="h-14 text-base font-semibold bg-white border-2 border-gray-400"
+                    required
                   />
                 </div>
+
                 <div className="space-y-3">
                   <Label className="text-lg font-bold text-gray-900 flex items-center gap-3">
-                    <Clock className="h-5 w-5 text-teal-500" />
+                    <Clock className="h-5 w-5 text-purple-600" />
                     Time
                   </Label>
-                  <Input
-                    type="time"
-                    value={formData.time}
-                    onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
-                    required
-                    className="h-14 text-base font-semibold bg-white border-2 border-gray-400"
-                  />
+                  <Select value={time} onValueChange={setTime} required>
+                    <SelectTrigger className="h-14 text-base font-semibold bg-white border-2 border-gray-400">
+                      <SelectValue placeholder="Select pickup time" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {generateTimeOptions().map((timeOption) => (
+                        <SelectItem key={timeOption} value={timeOption}>
+                          {timeOption}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-              </div>
 
-              {/* Vehicle Type and Passengers */}
-              <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-3">
                   <Label className="text-lg font-bold text-gray-900 flex items-center gap-3">
-                    <Car className="h-5 w-5 text-teal-500" />
+                    <Car className="h-5 w-5 text-green-600" />
                     Vehicle Type
                   </Label>
-                  <Select value={formData.vehicleType} onValueChange={(value) => setFormData(prev => ({ ...prev, vehicleType: value }))}>
+                  <Select value={vehicleType} onValueChange={setVehicleType} required>
                     <SelectTrigger className="h-14 text-base font-semibold bg-white border-2 border-gray-400">
-                      <SelectValue placeholder="Select vehicle type" />
+                      <SelectValue placeholder="Select vehicle" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="sedan">Sedan (1-4 passengers)</SelectItem>
                       <SelectItem value="suv">SUV (1-6 passengers)</SelectItem>
                       <SelectItem value="van">Van (1-8 passengers)</SelectItem>
-                      <SelectItem value="luxury">Luxury Car (1-4 passengers)</SelectItem>
+                      <SelectItem value="luxury">Luxury (1-4 passengers)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+
                 <div className="space-y-3">
                   <Label className="text-lg font-bold text-gray-900 flex items-center gap-3">
-                    <Users className="h-5 w-5 text-teal-500" />
+                    <Users className="h-5 w-5 text-orange-600" />
                     Passengers
                   </Label>
-                  <Select value={formData.passengers} onValueChange={(value) => setFormData(prev => ({ ...prev, passengers: value }))}>
+                  <Select value={passengers} onValueChange={setPassengers} required>
                     <SelectTrigger className="h-14 text-base font-semibold bg-white border-2 border-gray-400">
-                      <SelectValue />
+                      <SelectValue placeholder="Number of passengers" />
                     </SelectTrigger>
                     <SelectContent>
-                      {[1,2,3,4,5,6,7,8].map(num => (
-                        <SelectItem key={num} value={num.toString()}>{num} passenger{num > 1 ? 's' : ''}</SelectItem>
+                      {Array.from({ length: 8 }, (_, i) => (
+                        <SelectItem key={i + 1} value={(i + 1).toString()}>
+                          {i + 1} passenger{i > 0 ? "s" : ""}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
+              </CardContent>
+            </Card>
 
-              {/* Contact Information */}
-              <div className="space-y-4">
-                <h3 className="text-xl font-bold text-gray-900 border-b border-gray-300 pb-2">Contact Information</h3>
-                
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-3">
-                    <Label className="text-lg font-bold text-gray-900 flex items-center gap-3">
-                      <User className="h-5 w-5 text-teal-500" />
-                      First Name
-                    </Label>
-                    <Input
-                      type="text"
-                      value={formData.firstName}
-                      onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
-                      placeholder="Enter first name"
-                      required
-                      className="h-14 text-base font-semibold bg-white border-2 border-gray-400"
-                    />
-                  </div>
-                  <div className="space-y-3">
-                    <Label className="text-lg font-bold text-gray-900 flex items-center gap-3">
-                      <User className="h-5 w-5 text-teal-500" />
-                      Last Name
-                    </Label>
-                    <Input
-                      type="text"
-                      value={formData.lastName}
-                      onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
-                      placeholder="Enter last name"
-                      required
-                      className="h-14 text-base font-semibold bg-white border-2 border-gray-400"
-                    />
-                  </div>
+            {/* Customer Details */}
+            <Card className="border-2 border-gray-300 bg-white shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-2xl text-gray-900 flex items-center gap-2">
+                  <User className="h-6 w-6 text-teal-500" />
+                  Your Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <Label className="text-lg font-bold text-gray-900">First Name</Label>
+                  <Input
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    placeholder="Enter your first name"
+                    className="h-14 text-base font-semibold bg-white border-2 border-gray-400"
+                    required
+                  />
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-3">
-                    <Label className="text-lg font-bold text-gray-900 flex items-center gap-3">
-                      <Mail className="h-5 w-5 text-teal-500" />
-                      Email
-                    </Label>
-                    <Input
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                      placeholder="Enter email address"
-                      required
-                      className="h-14 text-base font-semibold bg-white border-2 border-gray-400"
-                    />
-                  </div>
-                  <div className="space-y-3">
-                    <Label className="text-lg font-bold text-gray-900 flex items-center gap-3">
-                      <Phone className="h-5 w-5 text-teal-500" />
-                      Phone
-                    </Label>
-                    <Input
-                      type="tel"
-                      value={formData.phone}
-                      onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                      placeholder="Enter phone number"
-                      required
-                      className="h-14 text-base font-semibold bg-white border-2 border-gray-400"
-                    />
-                  </div>
+                <div className="space-y-3">
+                  <Label className="text-lg font-bold text-gray-900">Last Name</Label>
+                  <Input
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    placeholder="Enter your last name"
+                    className="h-14 text-base font-semibold bg-white border-2 border-gray-400"
+                    required
+                  />
                 </div>
-              </div>
 
-              {/* Special Requests */}
-              <div className="space-y-3">
-                <Label className="text-lg font-bold text-gray-900">Special Requests (Optional)</Label>
-                <Textarea
-                  value={formData.specialRequests}
-                  onChange={(e) => setFormData(prev => ({ ...prev, specialRequests: e.target.value }))}
-                  placeholder="Any special requirements or requests..."
-                  className="min-h-[100px] text-base bg-white border-2 border-gray-400"
-                />
-              </div>
+                <div className="space-y-3">
+                  <Label className="text-lg font-bold text-gray-900 flex items-center gap-3">
+                    <Mail className="h-5 w-5 text-blue-600" />
+                    Email
+                  </Label>
+                  <Input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter your email"
+                    className="h-14 text-base font-semibold bg-white border-2 border-gray-400"
+                    required
+                  />
+                </div>
 
-              {/* Submit Button */}
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full h-14 text-lg font-bold bg-teal-600 hover:bg-teal-700 text-white"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                    Submitting Booking...
-                  </>
-                ) : submitStatus === 'success' ? (
-                  <>
-                    <CheckCircle className="h-5 w-5 mr-2" />
-                    Booking Submitted!
-                  </>
-                ) : submitStatus === 'error' ? (
-                  <>
-                    <AlertCircle className="h-5 w-5 mr-2" />
-                    Try Again
-                  </>
-                ) : (
-                  'Book Now'
+                <div className="space-y-3">
+                  <Label className="text-lg font-bold text-gray-900 flex items-center gap-3">
+                    <Phone className="h-5 w-5 text-green-600" />
+                    Phone
+                  </Label>
+                  <Input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="Enter your phone number"
+                    className="h-14 text-base font-semibold bg-white border-2 border-gray-400"
+                    required
+                  />
+                </div>
+
+                <div className="md:col-span-2 space-y-3">
+                  <Label className="text-lg font-bold text-gray-900 flex items-center gap-3">
+                    <MessageSquare className="h-5 w-5 text-purple-600" />
+                    Special Requests (Optional)
+                  </Label>
+                  <Textarea
+                    value={specialRequests}
+                    onChange={(e) => setSpecialRequests(e.target.value)}
+                    placeholder="Any special requests or additional information..."
+                    className="min-h-[100px] text-base bg-white border-2 border-gray-400"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Submit Section */}
+            <Card className="border-2 border-gray-300 bg-white shadow-sm">
+              <CardContent className="p-6">
+                {submitMessage && (
+                  <div
+                    className={`mb-4 p-4 rounded-lg border-2 ${
+                      submitMessage.includes("successfully")
+                        ? "bg-green-50 border-green-200 text-green-800"
+                        : "bg-red-50 border-red-200 text-red-800"
+                    }`}
+                  >
+                    {submitMessage}
+                  </div>
                 )}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
 
-        {/* Route Map */}
-        <div className="space-y-6">
-          <RouteMap
-            pickup={formData.pickup?.address || ""}
-            destination={formData.destination?.address || ""}
-            stops={formData.stops}
-          />
-          
-          {/* Contact Info Card */}
-          <Card className="border-2 border-teal-300 bg-teal-50">
-            <CardContent className="p-6">
-              <h3 className="text-xl font-bold text-teal-900 mb-4">Need Help?</h3>
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <Phone className="h-5 w-5 text-teal-600" />
-                  <span className="font-semibold text-teal-800">+61 435 287 287</span>
+                <Button
+                  type="submit"
+                  disabled={isSubmitting || !pickup || !destination}
+                  className="w-full h-16 text-lg font-bold bg-teal-600 hover:bg-teal-700 disabled:bg-gray-300"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin mr-3" />
+                      Sending Request...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-6 w-6 mr-3" />
+                      Book Your Transfer
+                    </>
+                  )}
+                </Button>
+
+                <div className="mt-4 text-center text-sm text-gray-600">
+                  <p>
+                    Need immediate assistance? Call us at <strong>+61 435 287 287</strong>
+                  </p>
+                  <p>Available 24/7 for all your transportation needs</p>
                 </div>
-                <div className="flex items-center gap-3">
-                  <Mail className="h-5 w-5 text-teal-600" />
-                  <span className="font-semibold text-teal-800">rgcabsperth@gmail.com</span>
-                </div>
-                <p className="text-sm text-teal-700 mt-4">
-                  Available 24/7 for bookings and support
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Column - Route Map */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-8">
+              <EnhancedRouteMap
+                pickup={pickup}
+                destination={destination}
+                stops={stops}
+                vehicleType={vehicleType}
+                onRouteCalculated={setRouteInfo}
+              />
+            </div>
+          </div>
+        </form>
       </div>
     </div>
   )

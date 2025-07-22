@@ -6,7 +6,6 @@ import { Loader2, MapPin, Navigation } from 'lucide-react'
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import { google } from "google-maps"
 
 declare global {
   interface Window {

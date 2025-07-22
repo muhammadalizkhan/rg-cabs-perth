@@ -1,5 +1,5 @@
 import type { LocationCoordinates, LocationDetails } from '@/types/location'
-import { google } from 'google-maps'
+
 
 export class LocationServices {
   private static geocoder: google.maps.Geocoder | null = null
