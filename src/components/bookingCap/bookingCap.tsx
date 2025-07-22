@@ -1,28 +1,40 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
-import { Calendar, Clock, Users, Car, Phone, Mail, User, MessageSquare, Send, MapPin, Navigation } from "lucide-react"
+import { Calendar, Clock, Users, Phone, Mail, User, MessageSquare, Send, RotateCcw, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { LocationInput } from "@/components/locationInput/locationInput"
+import { Switch } from "@/components/ui/switch"
+import { TripSection } from "@/components/bookingTrip/bookingTrip"
 import { RouteMap } from "@/components/routeMap/routeMap"
-import type { LocationData, Stop, RouteData } from "@/types/location"
+import type { TripData, RouteData } from "@/types/location"
+
 
 export default function BookingCap() {
-  const [pickup, setPickup] = useState<LocationData | null>(null)
-  const [destination, setDestination] = useState<LocationData | null>(null)
-  const [stops, setStops] = useState<Stop[]>([])
+  const [outboundTrip, setOutboundTrip] = useState<TripData>({
+    pickup: null,
+    destination: null,
+    stops: [],
+  })
+
+  const [hasReturnTrip, setHasReturnTrip] = useState(false)
+  const [returnTrip, setReturnTrip] = useState<TripData>({
+    pickup: null,
+    destination: null,
+    stops: [],
+  })
+
   const [routeData, setRouteData] = useState<RouteData | null>(null)
 
   const [date, setDate] = useState("")
   const [time, setTime] = useState("")
-  const [vehicleType, setVehicleType] = useState("")
+  const [returnDate, setReturnDate] = useState("")
+  const [returnTime, setReturnTime] = useState("")
   const [passengers, setPassengers] = useState("")
   const [firstName, setFirstName] = useState("")
   const [lastName, setLastName] = useState("")
@@ -36,14 +48,15 @@ export default function BookingCap() {
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
   if (!apiKey) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen bg-white py-8">
         <div className="max-w-4xl mx-auto px-4">
-          <Card className="border-red-300 bg-red-50">
+          <Card className="border-2 border-red-300 bg-red-50">
             <CardContent className="p-8 text-center">
-              <h2 className="text-2xl font-bold text-red-800 mb-4">Setup Required</h2>
-              <p className="text-red-700 mb-4">Google Maps API key is missing.</p>
-              <div className="bg-red-100 p-4 rounded text-left">
-                <p className="text-sm font-mono text-red-800">
+              <AlertTriangle className="h-12 w-12 text-red-600 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-black mb-4">Setup Required</h2>
+              <p className="text-black mb-4">Google Maps API key is missing.</p>
+              <div className="bg-white p-4 rounded-lg border border-red-200">
+                <p className="text-sm font-mono text-black">
                   Add to .env.local:
                   <br />
                   NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_api_key_here
@@ -73,16 +86,43 @@ export default function BookingCap() {
     return times
   }
 
+  const handleReturnTripToggle = (checked: boolean) => {
+    setHasReturnTrip(checked)
+    if (checked && outboundTrip.pickup && outboundTrip.destination) {
+      setReturnTrip({
+        pickup: outboundTrip.destination,
+        destination: outboundTrip.pickup,
+        stops: [],
+      })
+    } else {
+      setReturnTrip({
+        pickup: null,
+        destination: null,
+        stops: [],
+      })
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!pickup || !destination) {
+    if (!outboundTrip.pickup || !outboundTrip.destination) {
       setMessage("Please select pickup and destination locations")
       return
     }
 
-    if (!date || !time || !vehicleType || !passengers) {
+    if (hasReturnTrip && (!returnTrip.pickup || !returnTrip.destination)) {
+      setMessage("Please complete return trip locations")
+      return
+    }
+
+    if (!date || !time || !passengers) {
       setMessage("Please fill in all trip details")
+      return
+    }
+
+    if (hasReturnTrip && (!returnDate || !returnTime)) {
+      setMessage("Please fill in return trip date and time")
       return
     }
 
@@ -96,19 +136,39 @@ export default function BookingCap() {
 
     try {
       const bookingData = {
-        pickup: pickup.address,
-        pickupCoordinates: { lat: pickup.lat, lng: pickup.lng },
-        destination: destination.address,
-        destinationCoordinates: { lat: destination.lat, lng: destination.lng },
-        stops: stops
-          .filter((s) => s.location)
-          .map((s) => ({
-            address: s.location!.address,
-            coordinates: { lat: s.location!.lat, lng: s.location!.lng },
-          })),
+        outboundTrip: {
+          pickup: outboundTrip.pickup.address,
+          pickupCoordinates: { lat: outboundTrip.pickup.lat, lng: outboundTrip.pickup.lng },
+          destination: outboundTrip.destination.address,
+          destinationCoordinates: { lat: outboundTrip.destination.lat, lng: outboundTrip.destination.lng },
+          stops: outboundTrip.stops
+            .filter((s) => s.location)
+            .map((s) => ({
+              address: s.location!.address,
+              coordinates: { lat: s.location!.lat, lng: s.location!.lng },
+            })),
+        },
+        returnTrip: hasReturnTrip
+          ? {
+              pickup: returnTrip.pickup?.address,
+              pickupCoordinates: returnTrip.pickup ? { lat: returnTrip.pickup.lat, lng: returnTrip.pickup.lng } : null,
+              destination: returnTrip.destination?.address,
+              destinationCoordinates: returnTrip.destination
+                ? { lat: returnTrip.destination.lat, lng: returnTrip.destination.lng }
+                : null,
+              stops: returnTrip.stops
+                .filter((s) => s.location)
+                .map((s) => ({
+                  address: s.location!.address,
+                  coordinates: { lat: s.location!.lat, lng: s.location!.lng },
+                })),
+            }
+          : null,
+        hasReturnTrip,
         date,
         time,
-        vehicleType,
+        returnDate: hasReturnTrip ? returnDate : null,
+        returnTime: hasReturnTrip ? returnTime : null,
         passengers: Number.parseInt(passengers),
         firstName,
         lastName,
@@ -128,13 +188,13 @@ export default function BookingCap() {
 
       if (response.ok) {
         setMessage("✅ Booking request sent successfully! We'll contact you shortly.")
-        // Reset form
-        setPickup(null)
-        setDestination(null)
-        setStops([])
+        setOutboundTrip({ pickup: null, destination: null, stops: [] })
+        setReturnTrip({ pickup: null, destination: null, stops: [] })
+        setHasReturnTrip(false)
         setDate("")
         setTime("")
-        setVehicleType("")
+        setReturnDate("")
+        setReturnTime("")
         setPassengers("")
         setFirstName("")
         setLastName("")
@@ -152,81 +212,81 @@ export default function BookingCap() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4">
+    <div className="min-h-screen bg-white py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Book Your Perth Transfer</h1>
-          <p className="text-lg text-gray-600">Professional transportation services in Perth</p>
+          <h1 className="text-4xl font-bold text-black mb-4">Book Your Perth Transfer</h1>
+          <p className="text-lg text-gray-600 font-medium">Professional transportation services in Perth</p>
         </div>
 
         <form onSubmit={handleSubmit} className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
-            {/* Locations */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Car className="h-6 w-6 text-teal-500" />
-                  Trip Details
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <LocationInput
-                  label="Pickup Location"
-                  value={pickup}
-                  onChange={setPickup}
-                  placeholder="Enter pickup address in Perth"
-                  showCurrentLocation={true}
-                  icon={<MapPin className="h-5 w-5 text-green-600" />}
-                />
+            <TripSection
+              title="Outbound Trip"
+              tripData={outboundTrip}
+              onChange={setOutboundTrip}
+              showCurrentLocation={true}
+            />
 
-
-
-                <LocationInput
-                  label="Destination"
-                  value={destination}
-                  onChange={setDestination}
-                  placeholder="Enter destination in Perth"
-                  icon={<Navigation className="h-5 w-5 text-red-600" />}
-                />
+            <Card className="border-2 border-gray-200 bg-white shadow-sm">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <RotateCcw className="h-5 w-5 text-black" />
+                    <div>
+                      <Label className="text-base font-semibold text-black">Return Trip</Label>
+                      <p className="text-sm text-gray-600">Add a return journey</p>
+                    </div>
+                  </div>
+                  <Switch checked={hasReturnTrip} onCheckedChange={handleReturnTripToggle} />
+                </div>
               </CardContent>
             </Card>
 
-            {/* Date & Time */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="h-6 w-6 text-teal-500" />
-                  Schedule & Vehicle
+            {hasReturnTrip && (
+              <TripSection
+                title="Return Trip"
+                tripData={returnTrip}
+                onChange={setReturnTrip}
+                showCurrentLocation={false}
+              />
+            )}
+
+            <Card className="border-2 border-gray-200 bg-white shadow-sm">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg font-semibold text-black flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-black" />
+                  Schedule & Details
                 </CardTitle>
               </CardHeader>
               <CardContent className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-3">
-                  <Label className="text-lg font-bold flex items-center gap-3">
-                    <Calendar className="h-5 w-5 text-blue-600" />
-                    Date
+                  <Label className="text-base font-semibold text-black flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-black" />
+                    Outbound Date
                   </Label>
                   <Input
                     type="date"
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
                     min={getTomorrowDate()}
-                    className="h-14 text-base font-semibold"
+                    className="h-12 text-sm font-medium bg-white border-2 border-gray-300 text-black hover:border-gray-400 focus:border-black transition-all duration-200"
                     required
                   />
                 </div>
 
                 <div className="space-y-3">
-                  <Label className="text-lg font-bold flex items-center gap-3">
-                    <Clock className="h-5 w-5 text-purple-600" />
-                    Time
+                  <Label className="text-base font-semibold text-black flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-black" />
+                    Outbound Time
                   </Label>
                   <Select value={time} onValueChange={setTime} required>
-                    <SelectTrigger className="h-14 text-base font-semibold">
+                    <SelectTrigger className="h-12 text-sm font-medium bg-white border-2 border-gray-300 text-black hover:border-gray-400 focus:border-black transition-all duration-200">
                       <SelectValue placeholder="Select time" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white border-2 border-gray-200">
                       {generateTimeOptions().map((t) => (
-                        <SelectItem key={t} value={t}>
+                        <SelectItem key={t} value={t} className="text-black hover:bg-gray-50 focus:bg-gray-50">
                           {t}
                         </SelectItem>
                       ))}
@@ -234,35 +294,60 @@ export default function BookingCap() {
                   </Select>
                 </div>
 
-                <div className="space-y-3">
-                  <Label className="text-lg font-bold flex items-center gap-3">
-                    <Car className="h-5 w-5 text-green-600" />
-                    Vehicle
-                  </Label>
-                  <Select value={vehicleType} onValueChange={setVehicleType} required>
-                    <SelectTrigger className="h-14 text-base font-semibold">
-                      <SelectValue placeholder="Select vehicle" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="sedan">Sedan (1-4 passengers)</SelectItem>
-                      <SelectItem value="suv">SUV (1-6 passengers)</SelectItem>
-                      <SelectItem value="van">Van (1-8 passengers)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                {hasReturnTrip && (
+                  <>
+                    <div className="space-y-3">
+                      <Label className="text-base font-semibold text-black flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-black" />
+                        Return Date
+                      </Label>
+                      <Input
+                        type="date"
+                        value={returnDate}
+                        onChange={(e) => setReturnDate(e.target.value)}
+                        min={date || getTomorrowDate()}
+                        className="h-12 text-sm font-medium bg-white border-2 border-gray-300 text-black hover:border-gray-400 focus:border-black transition-all duration-200"
+                        required={hasReturnTrip}
+                      />
+                    </div>
+
+                    <div className="space-y-3">
+                      <Label className="text-base font-semibold text-black flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-black" />
+                        Return Time
+                      </Label>
+                      <Select value={returnTime} onValueChange={setReturnTime} required={hasReturnTrip}>
+                        <SelectTrigger className="h-12 text-sm font-medium bg-white border-2 border-gray-300 text-black hover:border-gray-400 focus:border-black transition-all duration-200">
+                          <SelectValue placeholder="Select return time" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white border-2 border-gray-200">
+                          {generateTimeOptions().map((t) => (
+                            <SelectItem key={t} value={t} className="text-black hover:bg-gray-50 focus:bg-gray-50">
+                              {t}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </>
+                )}
 
                 <div className="space-y-3">
-                  <Label className="text-lg font-bold flex items-center gap-3">
-                    <Users className="h-5 w-5 text-orange-600" />
+                  <Label className="text-base font-semibold text-black flex items-center gap-2">
+                    <Users className="h-4 w-4 text-black" />
                     Passengers
                   </Label>
                   <Select value={passengers} onValueChange={setPassengers} required>
-                    <SelectTrigger className="h-14 text-base font-semibold">
+                    <SelectTrigger className="h-12 text-sm font-medium bg-white border-2 border-gray-300 text-black hover:border-gray-400 focus:border-black transition-all duration-200">
                       <SelectValue placeholder="Number of passengers" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white border-2 border-gray-200">
                       {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
-                        <SelectItem key={n} value={n.toString()}>
+                        <SelectItem
+                          key={n}
+                          value={n.toString()}
+                          className="text-black hover:bg-gray-50 focus:bg-gray-50"
+                        >
                           {n} passenger{n > 1 ? "s" : ""}
                         </SelectItem>
                       ))}
@@ -273,39 +358,39 @@ export default function BookingCap() {
             </Card>
 
             {/* Personal Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="h-6 w-6 text-teal-500" />
+            <Card className="border-2 border-gray-200 bg-white shadow-sm">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg font-semibold text-black flex items-center gap-2">
+                  <User className="h-5 w-5 text-black" />
                   Your Details
                 </CardTitle>
               </CardHeader>
               <CardContent className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-3">
-                  <Label className="text-lg font-bold">First Name</Label>
+                  <Label className="text-base font-semibold text-black">First Name</Label>
                   <Input
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
                     placeholder="First name"
-                    className="h-14 text-base font-semibold"
+                    className="h-12 text-sm font-medium bg-white border-2 border-gray-300 text-black hover:border-gray-400 focus:border-black transition-all duration-200"
                     required
                   />
                 </div>
 
                 <div className="space-y-3">
-                  <Label className="text-lg font-bold">Last Name</Label>
+                  <Label className="text-base font-semibold text-black">Last Name</Label>
                   <Input
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
                     placeholder="Last name"
-                    className="h-14 text-base font-semibold"
+                    className="h-12 text-sm font-medium bg-white border-2 border-gray-300 text-black hover:border-gray-400 focus:border-black transition-all duration-200"
                     required
                   />
                 </div>
 
                 <div className="space-y-3">
-                  <Label className="text-lg font-bold flex items-center gap-3">
-                    <Mail className="h-5 w-5 text-blue-600" />
+                  <Label className="text-base font-semibold text-black flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-black" />
                     Email
                   </Label>
                   <Input
@@ -313,14 +398,14 @@ export default function BookingCap() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Email address"
-                    className="h-14 text-base font-semibold"
+                    className="h-12 text-sm font-medium bg-white border-2 border-gray-300 text-black hover:border-gray-400 focus:border-black transition-all duration-200"
                     required
                   />
                 </div>
 
                 <div className="space-y-3">
-                  <Label className="text-lg font-bold flex items-center gap-3">
-                    <Phone className="h-5 w-5 text-green-600" />
+                  <Label className="text-base font-semibold text-black flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-black" />
                     Phone
                   </Label>
                   <Input
@@ -328,54 +413,54 @@ export default function BookingCap() {
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="Phone number"
-                    className="h-14 text-base font-semibold"
+                    className="h-12 text-sm font-medium bg-white border-2 border-gray-300 text-black hover:border-gray-400 focus:border-black transition-all duration-200"
                     required
                   />
                 </div>
 
                 <div className="md:col-span-2 space-y-3">
-                  <Label className="text-lg font-bold flex items-center gap-3">
-                    <MessageSquare className="h-5 w-5 text-purple-600" />
+                  <Label className="text-base font-semibold text-black flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4 text-black" />
                     Special Requests (Optional)
                   </Label>
                   <Textarea
                     value={specialRequests}
                     onChange={(e) => setSpecialRequests(e.target.value)}
                     placeholder="Any special requests..."
-                    className="min-h-[100px] text-base"
+                    className="min-h-[100px] text-sm bg-white border-2 border-gray-300 text-black hover:border-gray-400 focus:border-black transition-all duration-200"
                   />
                 </div>
               </CardContent>
             </Card>
 
             {/* Submit */}
-            <Card>
+            <Card className="border-2 border-gray-200 bg-white shadow-sm">
               <CardContent className="p-6">
                 {message && (
                   <div
-                    className={`mb-4 p-4 rounded-lg ${
+                    className={`mb-4 p-4 rounded-lg border-2 ${
                       message.includes("✅")
-                        ? "bg-green-50 text-green-800 border border-green-200"
-                        : "bg-red-50 text-red-800 border border-red-200"
+                        ? "bg-green-50 text-green-800 border-green-200"
+                        : "bg-red-50 text-red-800 border-red-200"
                     }`}
                   >
-                    {message}
+                    <p className="font-medium">{message}</p>
                   </div>
                 )}
 
                 <Button
                   type="submit"
-                  disabled={isSubmitting || !pickup || !destination}
-                  className="w-full h-16 text-lg font-bold bg-teal-600 hover:bg-teal-700"
+                  disabled={isSubmitting || !outboundTrip.pickup || !outboundTrip.destination}
+                  className="w-full h-14 text-base font-semibold bg-black hover:bg-gray-800 text-white transition-all duration-200 disabled:bg-gray-300 disabled:text-gray-500"
                 >
                   {isSubmitting ? (
                     <>
-                      <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin mr-3" />
-                      Sending...
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-3" />
+                      Sending Request...
                     </>
                   ) : (
                     <>
-                      <Send className="h-6 w-6 mr-3" />
+                      <Send className="h-5 w-5 mr-3" />
                       Book Transfer
                     </>
                   )}
@@ -383,8 +468,9 @@ export default function BookingCap() {
 
                 <div className="mt-4 text-center text-sm text-gray-600">
                   <p>
-                    Need help? Call <strong>+61 435 287 287</strong>
+                    Need help? Call <span className="font-semibold text-black">+61 435 287 287</span>
                   </p>
+                  <p>Available 24/7 for all your transportation needs</p>
                 </div>
               </CardContent>
             </Card>
@@ -392,7 +478,11 @@ export default function BookingCap() {
 
           <div className="lg:col-span-1">
             <div className="sticky top-8">
-              <RouteMap pickup={pickup} destination={destination} stops={stops} onRouteChange={setRouteData} />
+              <RouteMap
+                outboundTrip={outboundTrip}
+                returnTrip={hasReturnTrip ? returnTrip : null}
+                onRouteChange={setRouteData}
+              />
             </div>
           </div>
         </form>

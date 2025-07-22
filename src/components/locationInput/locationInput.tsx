@@ -1,9 +1,8 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useRef, useEffect } from "react"
-import { MapPin, Navigation, Loader2, X } from "lucide-react"
+import { Loader2, X, Locate } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -17,6 +16,7 @@ interface LocationInputProps {
   placeholder: string
   showCurrentLocation?: boolean
   icon?: React.ReactNode
+  className?: string
 }
 
 export function LocationInput({
@@ -26,20 +26,19 @@ export function LocationInput({
   placeholder,
   showCurrentLocation = false,
   icon,
+  className = "",
 }: LocationInputProps) {
   const inputRef = useRef<HTMLInputElement>(null)
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null)
+  const autocompleteRef = useRef<any | null>(null)
   const [inputValue, setInputValue] = useState(value?.address || "")
   const [isLoading, setIsLoading] = useState(false)
   const [isReady, setIsReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Update input when value changes
   useEffect(() => {
     setInputValue(value?.address || "")
   }, [value])
 
-  // Initialize Google Maps and Autocomplete
   useEffect(() => {
     const initializeAutocomplete = async () => {
       try {
@@ -48,19 +47,17 @@ export function LocationInput({
 
         if (!inputRef.current) return
 
-        // Create autocomplete with Perth bounds
         autocompleteRef.current = new google.maps.places.Autocomplete(inputRef.current, {
           types: ["establishment", "geocode"],
           componentRestrictions: { country: "au" },
           bounds: new google.maps.LatLngBounds(
-            new google.maps.LatLng(-32.3, 115.5), // SW Perth
-            new google.maps.LatLng(-31.6, 116.2), // NE Perth
+            new google.maps.LatLng(-32.3, 115.5),
+            new google.maps.LatLng(-31.6, 116.2),
           ),
           strictBounds: true,
           fields: ["place_id", "formatted_address", "geometry", "name"],
         })
 
-        // Listen for place selection
         autocompleteRef.current.addListener("place_changed", () => {
           const place = autocompleteRef.current?.getPlace()
 
@@ -72,7 +69,6 @@ export function LocationInput({
               placeId: place.place_id,
             }
 
-            // Check if it's in Perth area
             if (isInPerth(location.lat, location.lng)) {
               onChange(location)
               setInputValue(location.address)
@@ -178,13 +174,13 @@ export function LocationInput({
   }
 
   return (
-    <div className="space-y-3">
-      <Label className="text-lg font-bold text-gray-900 flex items-center gap-3">
-        {icon || <MapPin className="h-5 w-5 text-teal-600" />}
+    <div className={`space-y-3 ${className}`}>
+      <Label className="text-base font-semibold text-black flex items-center gap-2">
+        {icon}
         {label}
       </Label>
 
-      <div className="flex gap-2">
+      <div className="flex gap-3">
         <div className="relative flex-1">
           <Input
             ref={inputRef}
@@ -193,15 +189,25 @@ export function LocationInput({
             onChange={handleInputChange}
             placeholder={isReady ? placeholder : "Loading..."}
             disabled={!isReady}
-            className="h-14 text-base font-semibold bg-white border-2 border-gray-400 pr-10"
+            className={`h-12 text-sm font-medium bg-white border-2 transition-all duration-200 pr-10 ${
+              value
+                ? "border-black bg-gray-50 text-black font-semibold"
+                : "border-gray-300 text-gray-700 hover:border-gray-400 focus:border-black"
+            }`}
           />
 
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
             {isLoading ? (
-              <Loader2 className="h-5 w-5 animate-spin text-gray-500" />
+              <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
             ) : inputValue ? (
-              <Button type="button" variant="ghost" size="sm" onClick={clearInput} className="h-6 w-6 p-0">
-                <X className="h-4 w-4" />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={clearInput}
+                className="h-6 w-6 p-0 hover:bg-gray-100"
+              >
+                <X className="h-3 w-3 text-gray-500" />
               </Button>
             ) : null}
           </div>
@@ -211,24 +217,29 @@ export function LocationInput({
           <Button
             type="button"
             variant="outline"
-            size="lg"
+            size="sm"
             onClick={getCurrentLocation}
             disabled={!isReady || isLoading}
-            className="h-14 px-4 bg-transparent"
+            className="h-12 px-3 border-2 border-gray-300 hover:border-black hover:bg-gray-50 bg-white transition-all duration-200"
+            title="Use current location"
           >
-            <Navigation className="h-5 w-5" />
+            <Locate className="h-4 w-4 text-black" />
           </Button>
         )}
       </div>
 
-      {error && <div className="text-sm text-red-600 bg-red-50 p-2 rounded border border-red-200">{error}</div>}
+      {error && (
+        <div className="text-xs text-red-600 bg-red-50 px-3 py-2 rounded-md border border-red-200">{error}</div>
+      )}
 
       {value && (
-        <div className="text-sm text-green-600 bg-green-50 p-2 rounded border border-green-200">✓ {value.address}</div>
+        <div className="text-xs text-green-700 bg-green-50 px-3 py-2 rounded-md border border-green-200 font-medium">
+          ✓ Selected: {value.address}
+        </div>
       )}
 
       {!isReady && !error && (
-        <div className="text-sm text-blue-600 bg-blue-50 p-2 rounded border border-blue-200">
+        <div className="text-xs text-blue-600 bg-blue-50 px-3 py-2 rounded-md border border-blue-200">
           Loading location services...
         </div>
       )}
