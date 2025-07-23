@@ -52,10 +52,10 @@ const cities = [
 const legalLinks = [
   { name: "Privacy Policy", href: "/PrivacyPolicy" },
   { name: "Terms of Service", href: "/TermsOfService" },
-  { name: "Cookie Policy", href: "/cookies" },
-  { name: "Refund Policy", href: "/refunds" },
-  { name: "Safety Guidelines", href: "/safety" },
-  { name: "Driver Terms", href: "/driver-terms" },
+  { name: "Cookie Policy", href: "/CookiePolicy" },
+  { name: "Refund Policy", href: "/RefundPolicy" },
+  { name: "Safety Guidelines", href: "/SafetyGuidelines" },
+  { name: "Driver Terms", href: "/DriverTerms" },
 ]
 
 const socialLinks = [
