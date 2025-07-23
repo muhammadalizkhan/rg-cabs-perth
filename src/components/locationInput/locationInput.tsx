@@ -58,28 +58,40 @@ export function LocationInput({
           fields: ["place_id", "formatted_address", "geometry", "name"],
         })
 
-        autocompleteRef.current.addListener("place_changed", () => {
-          const place = autocompleteRef.current?.getPlace()
+      autocompleteRef.current.addListener("place_changed", () => {
+  handlePlaceChange()
+})
 
-          if (place && place.geometry && place.geometry.location) {
-            const location: LocationData = {
-              address: place.formatted_address || place.name || "",
-              lat: place.geometry.location.lat(),
-              lng: place.geometry.location.lng(),
-              placeId: place.place_id,
-            }
+inputRef.current.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault()
+    google.maps.event.trigger(autocompleteRef.current, "place_changed")
+  }
+})
 
-            if (isInPerth(location.lat, location.lng)) {
-              onChange(location)
-              setInputValue(location.address)
-              setError(null)
-            } else {
-              setError("Please select a location within Perth metropolitan area")
-              setInputValue("")
-              onChange(null)
-            }
-          }
-        })
+function handlePlaceChange() {
+  const place = autocompleteRef.current?.getPlace()
+
+  if (place && place.geometry && place.geometry.location) {
+    const location: LocationData = {
+      address: place.formatted_address || place.name || "",
+      lat: place.geometry.location.lat(),
+      lng: place.geometry.location.lng(),
+      placeId: place.place_id,
+    }
+
+    if (isInPerth(location.lat, location.lng)) {
+      onChange(location)
+      setInputValue(location.address)
+      setError(null)
+    } else {
+      setError("Please select a location within Perth metropolitan area")
+      setInputValue("")
+      onChange(null)
+    }
+  }
+}
+
 
         setIsReady(true)
         setError(null)
