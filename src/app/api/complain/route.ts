@@ -153,27 +153,23 @@ export async function POST(req: NextRequest) {
             </div>
 
             <!-- Quick Actions -->
-          <div className="space-y-2 text-sm text-black font-medium">
-  <div>
-    📞{" "}
-    <a
-      href="tel:+61435287287"
-      className="text-blue-600 hover:underline"
-    >
-      +61 435 287 287
-    </a>
-  </div>
-  <div>
-    📧{" "}
-    <a
-      href="mailto:rgcabsperth@gmail.com"
-      className="text-blue-600 hover:underline"
-    >
-      rgcabsperth@gmail.com
-    </a>
-  </div>
-</div>
-
+             <div style="background-color: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+              <h3 style="color: #333; margin-top: 0;">Need to make changes or have questions?</h3>
+              <p style="margin: 10px 0;"><strong>📞 Phone:</strong> +61435287287 - Available 24/7</p>
+              <p style="margin: 10px 0;"><strong>📧 Email:</strong> rgcabsperth@gmail.com</p>
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="tel:+61435287287" style="background-color: #000000; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+                Call Us Now
+              </a>
+            </div>
+            
+            <p style="color: #666; font-size: 14px; text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+              Perth Transfers - Your trusted transportation partner<br>
+              Serving Perth and surrounding areas 24/7
+            </p>
+          </div>
 
           <!-- Footer -->
           <div style="background-color: #f3f4f6; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
@@ -186,7 +182,6 @@ export async function POST(req: NextRequest) {
       `,
     }
 
-    // Customer acknowledgment email
     const customerMailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
@@ -262,27 +257,12 @@ export async function POST(req: NextRequest) {
               </div>
             </div>
 
-           <div className="space-y-2 text-sm text-black font-medium">
-  <div>
-    📞{" "}
-    <a
-      href="tel:+61435287287"
-      className="text-blue-600 hover:underline"
-    >
-      +61 435 287 287
-    </a>
-  </div>
-  <div>
-    📧{" "}
-    <a
-      href="mailto:rgcabsperth@gmail.com"
-      className="text-blue-600 hover:underline"
-    >
-      rgcabsperth@gmail.com
-    </a>
-  </div>
-</div>
-
+            <!-- Call to Action -->
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="tel:+61435287287" style="background-color: #f59e0b; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block; box-shadow: 0 4px 6px rgba(245, 158, 11, 0.3);">
+                📞 Call Us Now: +61 435 287 287
+              </a>
+            </div>
 
             <!-- Commitment Message -->
             <div style="border-top: 2px solid #e5e7eb; padding-top: 20px; margin-top: 30px; text-align: center;">
