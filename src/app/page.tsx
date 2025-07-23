@@ -8,6 +8,7 @@ import ContactUS from "@/components/contactUs/contactUs"
 import SecurePayment from "@/components/securePayment/securePayment"
 import FAQs from "@/components/faqs/faqs"
 import ContactBookComplain from "@/components/contactBookComplain/contactBookComplain"
+import WhatsAppFab from "@/components/whatsappFab/whatsappFab"
 
 
 export default function Home() {
@@ -21,6 +22,7 @@ export default function Home() {
       <SecurePayment />
       <ContactBookComplain />
       <FAQs />
+      <WhatsAppFab />
     </div>
   )
 }
