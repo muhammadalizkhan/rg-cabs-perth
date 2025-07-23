@@ -290,75 +290,84 @@ export default function BookingCap() {
               </div>
             )}
 
-            {/* Outbound Date & Time */}
-            <Card className="border-2 border-gray-200 bg-white shadow-sm">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-lg font-semibold text-black flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-black" />
-                  Outbound Schedule & Details
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid md:grid-cols-3 gap-6">
-                <div className="space-y-3">
-                  <Label className="text-base font-semibold text-black flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-black" />
-                    Date
-                  </Label>
-                  <Input
-                    type="date"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    min={getTomorrowDate()}
-                    className="h-12 text-sm font-medium bg-white border-2 border-gray-300 text-black hover:border-gray-400 focus:border-black transition-all duration-200"
-                    required
-                  />
-                </div>
+         <Card className="border border-gray-200 bg-white shadow-sm rounded-xl">
+  <CardHeader>
+    <CardTitle className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+      <Clock className="h-5 w-5 text-gray-700" />
+      Outbound Schedule & Details
+    </CardTitle>
+  </CardHeader>
 
-                <div className="space-y-3">
-                  <Label className="text-base font-semibold text-black flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-black" />
-                    Time
-                  </Label>
-                  <Select value={time} onValueChange={setTime} required>
-                    <SelectTrigger className="h-12 text-sm font-medium bg-white border-2 border-gray-300 text-black hover:border-gray-400 focus:border-black transition-all duration-200">
-                      <SelectValue placeholder="Select time" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white border-2 border-gray-200">
-                      {generateTimeOptions().map((t) => (
-                        <SelectItem key={t} value={t} className="text-black hover:bg-gray-50 focus:bg-gray-50">
-                          {t}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+  <CardContent>
+    <div className="grid md:grid-cols-3 gap-4">
+      {/* Date */}
+      <div className="flex flex-col gap-1.5">
+        <Label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+          <Calendar className="h-4 w-4 text-gray-500" />
+          Date
+        </Label>
+        <Input
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          min={getTomorrowDate()}
+          className="h-11 px-3 text-sm text-gray-800 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
+          required
+        />
+      </div>
 
-                <div className="space-y-3">
-                  <Label className="text-base font-semibold text-black flex items-center gap-2">
-                    <Users className="h-4 w-4 text-black" />
-                    Passengers
-                  </Label>
-                  <Select value={passengers} onValueChange={setPassengers} required>
-                    <SelectTrigger className="h-12 text-sm font-medium bg-white border-2 border-gray-300 text-black hover:border-gray-400 focus:border-black transition-all duration-200">
-                      <SelectValue placeholder="Number of passengers" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white border-2 border-gray-200">
-                      {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
-                        <SelectItem
-                          key={n}
-                          value={n.toString()}
-                          className="text-black hover:bg-gray-50 focus:bg-gray-50"
-                        >
-                          {n} passenger{n > 1 ? "s" : ""}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-            </Card>
+      {/* Time */}
+      <div className="flex flex-col gap-1.5">
+        <Label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+          <Clock className="h-4 w-4 text-gray-500" />
+          Time
+        </Label>
+        <Select value={time} onValueChange={setTime} required>
+          <SelectTrigger className="h-11 px-3 text-sm text-gray-800 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-black">
+            <SelectValue placeholder="Select time" />
+          </SelectTrigger>
+          <SelectContent className="bg-white border border-gray-200 text-gray-800">
+            {generateTimeOptions().map((t) => (
+              <SelectItem
+                key={t}
+                value={t}
+                className="text-sm hover:bg-gray-100 focus:bg-gray-100"
+              >
+                {t}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
-            {/* Personal Details */}
+      {/* Passengers */}
+      <div className="flex flex-col gap-1.5">
+        <Label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+          <Users className="h-4 w-4 text-gray-500" />
+          Passengers
+        </Label>
+        <Select value={passengers} onValueChange={setPassengers} required>
+          <SelectTrigger className="h-11 px-3 text-sm text-gray-800 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-black">
+            <SelectValue placeholder="Number of passengers" />
+          </SelectTrigger>
+          <SelectContent className="bg-white border border-gray-200 text-gray-800">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+              <SelectItem
+                key={n}
+                value={n.toString()}
+                className="text-sm hover:bg-gray-100 focus:bg-gray-100"
+              >
+                {n} passenger{n > 1 ? "s" : ""}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+  </CardContent>
+</Card>
+
+
             <Card className="border-2 border-gray-200 bg-white shadow-sm">
               <CardHeader className="pb-4">
                 <CardTitle className="text-lg font-semibold text-black flex items-center gap-2">

@@ -29,7 +29,9 @@ const navigationItems = [
   { name: "Services", href: "/AllServices", hasDropdown: true },
   { name: "Booking", href: "/BookNow" },
   { name: "Insights", href: "/Insights", description: "FAQs & Help Center" },
+  { name: "Complain", href: "/Complain" },
   { name: "Contact", href: "/contact" },
+  { name: "Complain", href: "/Complain" },
 ]
 
 const serviceItems = [
