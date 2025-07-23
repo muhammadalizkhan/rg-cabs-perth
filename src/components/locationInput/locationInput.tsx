@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import { Loader2, X, Locate } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -34,6 +34,29 @@ export function LocationInput({
   const [isLoading, setIsLoading] = useState(false)
   const [isReady, setIsReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const isInitializedRef = useRef(false)
+
+  // Stable callback to prevent re-initialization
+  const handlePlaceChanged = useCallback(() => {
+    const place = autocompleteRef.current?.getPlace()
+    if (place && place.geometry && place.geometry.location) {
+      const location: LocationData = {
+        address: place.formatted_address || place.name || "",
+        lat: place.geometry.location.lat(),
+        lng: place.geometry.location.lng(),
+        placeId: place.place_id,
+      }
+      if (isInPerth(location.lat, location.lng)) {
+        onChange(location)
+        setInputValue(location.address)
+        setError(null)
+      } else {
+        setError("Please select a location within Perth metropolitan area")
+        setInputValue("")
+        onChange(null)
+      }
+    }
+  }, [onChange])
 
   useEffect(() => {
     setInputValue(value?.address || "")
@@ -41,58 +64,29 @@ export function LocationInput({
 
   useEffect(() => {
     const initializeAutocomplete = async () => {
+      // Prevent multiple initializations
+      if (isInitializedRef.current || !inputRef.current) return
+
       try {
         setIsLoading(true)
         await GoogleMapsLoader.load()
 
         if (!inputRef.current) return
 
-        autocompleteRef.current = new google.maps.places.Autocomplete(inputRef.current, {
+        autocompleteRef.current = new (window as any).google.maps.places.Autocomplete(inputRef.current, {
           types: ["establishment", "geocode"],
           componentRestrictions: { country: "au" },
-          bounds: new google.maps.LatLngBounds(
-            new google.maps.LatLng(-32.3, 115.5),
-            new google.maps.LatLng(-31.6, 116.2),
+          bounds: new (window as any).google.maps.LatLngBounds(
+            new (window as any).google.maps.LatLng(-32.3, 115.5),
+            new (window as any).google.maps.LatLng(-31.6, 116.2),
           ),
           strictBounds: true,
           fields: ["place_id", "formatted_address", "geometry", "name"],
         })
 
-      autocompleteRef.current.addListener("place_changed", () => {
-  handlePlaceChange()
-})
+        autocompleteRef.current.addListener("place_changed", handlePlaceChanged)
 
-inputRef.current.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") {
-    e.preventDefault()
-    google.maps.event.trigger(autocompleteRef.current, "place_changed")
-  }
-})
-
-function handlePlaceChange() {
-  const place = autocompleteRef.current?.getPlace()
-
-  if (place && place.geometry && place.geometry.location) {
-    const location: LocationData = {
-      address: place.formatted_address || place.name || "",
-      lat: place.geometry.location.lat(),
-      lng: place.geometry.location.lng(),
-      placeId: place.place_id,
-    }
-
-    if (isInPerth(location.lat, location.lng)) {
-      onChange(location)
-      setInputValue(location.address)
-      setError(null)
-    } else {
-      setError("Please select a location within Perth metropolitan area")
-      setInputValue("")
-      onChange(null)
-    }
-  }
-}
-
-
+        isInitializedRef.current = true
         setIsReady(true)
         setError(null)
       } catch (err) {
@@ -106,11 +100,21 @@ function handlePlaceChange() {
     initializeAutocomplete()
 
     return () => {
-      if (autocompleteRef.current) {
-        google.maps.event.clearInstanceListeners(autocompleteRef.current)
+      if (autocompleteRef.current && isInitializedRef.current) {
+        ;(window as any).google.maps.event.clearInstanceListeners(autocompleteRef.current)
+        autocompleteRef.current = null
+        isInitializedRef.current = false
       }
     }
-  }, [onChange])
+  }, []) // Remove onChange from dependencies
+
+  // Update the place_changed listener when handlePlaceChanged changes
+  useEffect(() => {
+    if (autocompleteRef.current && isInitializedRef.current) {
+      ;(window as any).google.maps.event.clearListeners(autocompleteRef.current, "place_changed")
+      autocompleteRef.current.addListener("place_changed", handlePlaceChanged)
+    }
+  }, [handlePlaceChanged])
 
   const isInPerth = (lat: number, lng: number): boolean => {
     return lat >= -32.3 && lat <= -31.6 && lng >= 115.5 && lng <= 116.2
@@ -126,7 +130,6 @@ function handlePlaceChange() {
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords
-
         if (!isInPerth(latitude, longitude)) {
           setError("Your current location is outside Perth area")
           setIsLoading(false)
@@ -134,9 +137,9 @@ function handlePlaceChange() {
         }
 
         try {
-          const geocoder = new google.maps.Geocoder()
-          const result = await new Promise<google.maps.GeocoderResult[]>((resolve, reject) => {
-            geocoder.geocode({ location: { lat: latitude, lng: longitude } }, (results, status) => {
+          const geocoder = new (window as any).google.maps.Geocoder()
+          const result = await new Promise<any[]>((resolve, reject) => {
+            geocoder.geocode({ location: { lat: latitude, lng: longitude } }, (results: any[], status: string) => {
               if (status === "OK" && results) {
                 resolve(results)
               } else {
@@ -173,7 +176,6 @@ function handlePlaceChange() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value
     setInputValue(newValue)
-
     if (newValue !== value?.address) {
       onChange(null)
     }
@@ -191,7 +193,6 @@ function handlePlaceChange() {
         {icon}
         {label}
       </Label>
-
       <div className="flex gap-3">
         <div className="relative flex-1">
           <Input
@@ -207,7 +208,6 @@ function handlePlaceChange() {
                 : "border-gray-300 text-gray-700 hover:border-gray-400 focus:border-black"
             }`}
           />
-
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
@@ -224,7 +224,6 @@ function handlePlaceChange() {
             ) : null}
           </div>
         </div>
-
         {showCurrentLocation && (
           <Button
             type="button"
@@ -239,17 +238,14 @@ function handlePlaceChange() {
           </Button>
         )}
       </div>
-
       {error && (
         <div className="text-xs text-red-600 bg-red-50 px-3 py-2 rounded-md border border-red-200">{error}</div>
       )}
-
       {value && (
         <div className="text-xs text-green-700 bg-green-50 px-3 py-2 rounded-md border border-green-200 font-medium">
           ✓ Selected: {value.address}
         </div>
       )}
-
       {!isReady && !error && (
         <div className="text-xs text-blue-600 bg-blue-50 px-3 py-2 rounded-md border border-blue-200">
           Loading location services...
