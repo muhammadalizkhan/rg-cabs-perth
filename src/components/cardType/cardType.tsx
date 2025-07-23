@@ -19,7 +19,7 @@ const vehicleTypes: VehicleType[] = [
 
 export function VehicleTypeCard({ selectedVehicle, onChange }: VehicleTypeCardProps) {
   return (
-    <Card className="border-2 border-gray-200 bg-white shadow-sm">
+    <Card className="bg-white/50 backdrop-blur-l rounded-2xl p-3 border border-black/15 shadow-lg">
       <CardHeader className="pb-4">
         <CardTitle className="text-lg font-semibold text-black flex items-center gap-2">
           <Car className="h-5 w-5 text-black" />
