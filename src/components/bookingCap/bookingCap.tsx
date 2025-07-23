@@ -305,7 +305,6 @@ export default function BookingCap() {
                     </Select>
                   </div>
 
-                  {/* Passengers */}
                   <div className="flex flex-col gap-1.5">
                     <Label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
                       <Users className="h-4 w-4 text-gray-500" />
@@ -316,7 +315,7 @@ export default function BookingCap() {
                         <SelectValue placeholder="Number of passengers" />
                       </SelectTrigger>
                       <SelectContent className="bg-white border border-gray-200 text-gray-800">
-                        {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((n) => (
                           <SelectItem
                             key={n}
                             value={n.toString()}
