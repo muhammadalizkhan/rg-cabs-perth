@@ -7,6 +7,7 @@ import AboutUS from "@/components/aboutus/aboutus"
 import ContactUS from "@/components/contactUs/contactUs"
 import SecurePayment from "@/components/securePayment/securePayment"
 import FAQs from "@/components/faqs/faqs"
+import ContactBookComplain from "@/components/contactBookComplain/contactBookComplain"
 
 
 export default function Home() {
@@ -18,6 +19,7 @@ export default function Home() {
       <AboutUS />
       <ContactUS />
       <SecurePayment />
+      <ContactBookComplain />
       <FAQs />
     </div>
   )

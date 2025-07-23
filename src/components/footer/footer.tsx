@@ -50,8 +50,8 @@ const cities = [
 ]
 
 const legalLinks = [
-  { name: "Privacy Policy", href: "/privacy" },
-  { name: "Terms of Service", href: "/terms" },
+  { name: "Privacy Policy", href: "/PrivacyPolicy" },
+  { name: "Terms of Service", href: "/TermsOfService" },
   { name: "Cookie Policy", href: "/cookies" },
   { name: "Refund Policy", href: "/refunds" },
   { name: "Safety Guidelines", href: "/safety" },

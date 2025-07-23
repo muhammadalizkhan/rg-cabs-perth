@@ -31,7 +31,6 @@ const navigationItems = [
   { name: "Insights", href: "/Insights", description: "FAQs & Help Center" },
   { name: "Complain", href: "/Complain" },
   { name: "Contact", href: "/contact" },
-  { name: "Complain", href: "/Complain" },
 ]
 
 const serviceItems = [
@@ -366,6 +365,7 @@ export default function Navbar() {
                               {item.name === "About" && "Our story & mission"}
                               {item.name === "Booking" && "Reserve your ride"}
                               {item.name === "Insights" && "FAQs & Help Center"}
+                              {item.name === "Complain" && "File a complaint"}
                               {item.name === "Contact" && "Get in touch"}
                             </div>
                           </div>
