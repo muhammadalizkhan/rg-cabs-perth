@@ -153,15 +153,27 @@ export async function POST(req: NextRequest) {
             </div>
 
             <!-- Quick Actions -->
-            <div style="text-align: center; margin: 25px 0;">
-              <a href="tel:${phone}" style="background-color: #10b981; color: white; padding: 12px 25px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 0 10px; display: inline-block;">
-                📞 Call Customer
-              </a>
-              <a href="mailto:${email}" style="background-color: #3b82f6; color: white; padding: 12px 25px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 0 10px; display: inline-block;">
-                📧 Email Customer
-              </a>
-            </div>
-          </div>
+          <div className="space-y-2 text-sm text-black font-medium">
+  <div>
+    📞{" "}
+    <a
+      href="tel:+61435287287"
+      className="text-blue-600 hover:underline"
+    >
+      +61 435 287 287
+    </a>
+  </div>
+  <div>
+    📧{" "}
+    <a
+      href="mailto:rgcabsperth@gmail.com"
+      className="text-blue-600 hover:underline"
+    >
+      rgcabsperth@gmail.com
+    </a>
+  </div>
+</div>
+
 
           <!-- Footer -->
           <div style="background-color: #f3f4f6; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
@@ -250,12 +262,27 @@ export async function POST(req: NextRequest) {
               </div>
             </div>
 
-            <!-- Call to Action -->
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="tel:+61435287287" style="background-color: #f59e0b; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block; box-shadow: 0 4px 6px rgba(245, 158, 11, 0.3);">
-                📞 Call Us Now: +61 435 287 287
-              </a>
-            </div>
+           <div className="space-y-2 text-sm text-black font-medium">
+  <div>
+    📞{" "}
+    <a
+      href="tel:+61435287287"
+      className="text-blue-600 hover:underline"
+    >
+      +61 435 287 287
+    </a>
+  </div>
+  <div>
+    📧{" "}
+    <a
+      href="mailto:rgcabsperth@gmail.com"
+      className="text-blue-600 hover:underline"
+    >
+      rgcabsperth@gmail.com
+    </a>
+  </div>
+</div>
+
 
             <!-- Commitment Message -->
             <div style="border-top: 2px solid #e5e7eb; padding-top: 20px; margin-top: 30px; text-align: center;">
