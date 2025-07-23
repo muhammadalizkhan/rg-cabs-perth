@@ -16,6 +16,7 @@ import { SimpleSwitch } from "../ui/simple-switch"
 import { ReturnTripSection } from "@/components/returnTrip/returnTrip"
 import { VehicleTypeCard } from "@/components/cardType/cardType"
 
+
 export default function BookingCap() {
   const [outboundTrip, setOutboundTrip] = useState<TripData>({
     pickup: null,
@@ -31,7 +32,6 @@ export default function BookingCap() {
     date: "",
     time: "",
   })
-
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleType | null>(null)
   const [routeData, setRouteData] = useState<RouteData | null>(null)
   const [date, setDate] = useState("")
@@ -44,9 +44,7 @@ export default function BookingCap() {
   const [specialRequests, setSpecialRequests] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [message, setMessage] = useState("")
-
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
-
   if (!apiKey) {
     return (
       <div className="min-h-screen bg-white py-8">
@@ -69,56 +67,21 @@ export default function BookingCap() {
       </div>
     )
   }
-
   const getTomorrowDate = () => {
     const tomorrow = new Date()
     tomorrow.setDate(tomorrow.getDate() + 1)
     return tomorrow.toISOString().split("T")[0]
   }
-
-  const generateDateOptions = () => {
-    const dates = []
-    const today = new Date()
-
-    for (let i = 1; i <= 30; i++) {
-      const date = new Date(today)
-      date.setDate(today.getDate() + i)
-
-      const dateString = date.toISOString().split("T")[0]
-      const dateLabel = date.toLocaleDateString("en-AU", {
-        weekday: "short",
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      })
-
-      dates.push({
-        value: dateString,
-        label: dateLabel,
-      })
-    }
-
-    return dates
-  }
-
   const generateTimeOptions = () => {
     const times = []
-    for (let hour = 0; hour < 24; hour++) {
+    for (let hour = 6; hour < 24; hour++) {
       for (let minute = 0; minute < 60; minute += 30) {
-        const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour
-        const ampm = hour < 12 ? "AM" : "PM"
-        const timeString24 = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`
-        const timeString12 = `${hour12}:${minute.toString().padStart(2, "0")} ${ampm}`
-
-        times.push({
-          value: timeString24,
-          label: timeString12,
-        })
+        const timeString = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`
+        times.push(timeString)
       }
     }
     return times
   }
-
   const handleReturnTripToggle = (checked: boolean) => {
     setHasReturnTrip(checked)
     if (checked) {
@@ -149,37 +112,30 @@ export default function BookingCap() {
       })
     }
   }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!outboundTrip.pickup || !outboundTrip.destination) {
       setMessage("Please select pickup and destination locations")
       return
     }
-
     if (!selectedVehicle) {
       setMessage("Please select a vehicle type")
       return
     }
-
     if (hasReturnTrip && (!returnTrip.pickup || !returnTrip.destination || !returnTrip.date || !returnTrip.time)) {
       setMessage("Please complete all return trip details")
       return
     }
-
     if (!date || !time || !passengers) {
       setMessage("Please fill in all trip details")
       return
     }
-
     if (!firstName || !lastName || !email || !phone) {
       setMessage("Please fill in all personal details")
       return
     }
-
     setIsSubmitting(true)
     setMessage("")
-
     try {
       const bookingData = {
         outboundTrip: {
@@ -196,21 +152,21 @@ export default function BookingCap() {
         },
         returnTrip: hasReturnTrip
           ? {
-              pickup: returnTrip.pickup?.address || null,
-              pickupCoordinates: returnTrip.pickup ? { lat: returnTrip.pickup.lat, lng: returnTrip.pickup.lng } : null,
-              destination: returnTrip.destination?.address || null,
-              destinationCoordinates: returnTrip.destination
-                ? { lat: returnTrip.destination.lat, lng: returnTrip.destination.lng }
-                : null,
-              stops: returnTrip.stops
-                .filter((s) => s.location)
-                .map((s) => ({
-                  address: s.location!.address,
-                  coordinates: { lat: s.location!.lat, lng: s.location!.lng },
-                })),
-              date: returnTrip.date,
-              time: returnTrip.time,
-            }
+            pickup: returnTrip.pickup?.address || null,
+            pickupCoordinates: returnTrip.pickup ? { lat: returnTrip.pickup.lat, lng: returnTrip.pickup.lng } : null,
+            destination: returnTrip.destination?.address || null,
+            destinationCoordinates: returnTrip.destination
+              ? { lat: returnTrip.destination.lat, lng: returnTrip.destination.lng }
+              : null,
+            stops: returnTrip.stops
+              .filter((s) => s.location)
+              .map((s) => ({
+                address: s.location!.address,
+                coordinates: { lat: s.location!.lat, lng: s.location!.lng },
+              })),
+            date: returnTrip.date,
+            time: returnTrip.time,
+          }
           : null,
         hasReturnTrip,
         vehicleType: selectedVehicle,
@@ -256,7 +212,6 @@ export default function BookingCap() {
       setIsSubmitting(false)
     }
   }
-
   return (
     <div className="min-h-screen bg-white py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -264,7 +219,6 @@ export default function BookingCap() {
           <h1 className="text-4xl font-bold text-black mb-4">Book Your Perth Transfer</h1>
           <p className="text-lg text-gray-600 font-medium">Professional transportation services in Perth</p>
         </div>
-
         <form onSubmit={handleSubmit} className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
             <TripSection
@@ -273,9 +227,7 @@ export default function BookingCap() {
               onChange={setOutboundTrip}
               showCurrentLocation={true}
             />
-
             <VehicleTypeCard selectedVehicle={selectedVehicle} onChange={setSelectedVehicle} />
-
             <Card className="border-2 border-gray-200 bg-white shadow-smbg-white/50 backdrop-blur-l rounded-2xl p-3 border border-black/15 shadow-lg">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
@@ -296,7 +248,6 @@ export default function BookingCap() {
                 </div>
               </CardContent>
             </Card>
-
             {hasReturnTrip && (
               <div className="animate-in slide-in-from-top-2 duration-300">
                 <ReturnTripSection
@@ -307,75 +258,69 @@ export default function BookingCap() {
                 />
               </div>
             )}
-
             <Card className="bg-white/50 backdrop-blur-l rounded-2xl p-3 border border-black/15 shadow-lg">
               <CardHeader>
-                <CardTitle className="text-lg font-semibold text-black flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-black" />
+                <CardTitle className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-gray-700" />
                   Outbound Schedule & Details
                 </CardTitle>
               </CardHeader>
+
               <CardContent>
                 <div className="grid md:grid-cols-3 gap-4">
                   <div className="flex flex-col gap-1.5">
-                    <Label className="text-sm font-medium text-black flex items-center gap-1.5">
-                      <Calendar className="h-4 w-4 text-black" />
+                    <Label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                      <Calendar className="h-4 w-4 text-gray-500" />
                       Date
                     </Label>
-                    <Select value={date} onValueChange={setDate} required>
-                      <SelectTrigger className="h-12 px-3 text-sm text-black bg-white border-2 border-gray-300 rounded-md hover:border-gray-400 focus:border-black transition-all duration-200">
-                        <SelectValue placeholder="Select date" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white border border-gray-200 max-h-60">
-                        {generateDateOptions().map((dateOption) => (
-                          <SelectItem
-                            key={dateOption.value}
-                            value={dateOption.value}
-                            className="text-sm text-black hover:bg-gray-100 focus:bg-gray-100"
-                          >
-                            {dateOption.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Input
+                      type="date"
+                      value={date}
+                      onChange={(e) => setDate(e.target.value)}
+                      min={getTomorrowDate()}
+                      className="h-11 px-3 text-sm text-gray-800 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
+                      required
+                    />
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <Label className="text-sm font-medium text-black flex items-center gap-1.5">
-                      <Clock className="h-4 w-4 text-black" />
+                    <Label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                      <Clock className="h-4 w-4 text-gray-500" />
                       Time
                     </Label>
                     <Select value={time} onValueChange={setTime} required>
-                      <SelectTrigger className="h-12 px-3 text-sm text-black bg-white border-2 border-gray-300 rounded-md hover:border-gray-400 focus:border-black transition-all duration-200">
+                      <SelectTrigger className="h-11 px-3 text-sm text-gray-800 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-black">
                         <SelectValue placeholder="Select time" />
                       </SelectTrigger>
-                      <SelectContent className="bg-white border border-gray-200 max-h-60">
-                        {generateTimeOptions().map((timeOption) => (
+                      <SelectContent className="bg-white border border-gray-200 text-gray-800">
+                        {generateTimeOptions().map((t) => (
                           <SelectItem
-                            key={timeOption.value}
-                            value={timeOption.value}
-                            className="text-sm text-black hover:bg-gray-100 focus:bg-gray-100"
+                            key={t}
+                            value={t}
+                            className="text-sm hover:bg-gray-100 focus:bg-gray-100"
                           >
-                            {timeOption.label}
+                            {t}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
+
+                  {/* Passengers */}
                   <div className="flex flex-col gap-1.5">
-                    <Label className="text-sm font-medium text-black flex items-center gap-1.5">
-                      <Users className="h-4 w-4 text-black" />
+                    <Label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                      <Users className="h-4 w-4 text-gray-500" />
                       Passengers
                     </Label>
                     <Select value={passengers} onValueChange={setPassengers} required>
-                      <SelectTrigger className="h-12 px-3 text-sm text-black bg-white border-2 border-gray-300 rounded-md hover:border-gray-400 focus:border-black transition-all duration-200">
+                      <SelectTrigger className="h-11 px-3 text-sm text-gray-800 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-black">
                         <SelectValue placeholder="Number of passengers" />
                       </SelectTrigger>
-                      <SelectContent className="bg-white border border-gray-200">
+                      <SelectContent className="bg-white border border-gray-200 text-gray-800">
                         {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
                           <SelectItem
                             key={n}
                             value={n.toString()}
-                            className="text-sm text-black hover:bg-gray-100 focus:bg-gray-100"
+                            className="text-sm hover:bg-gray-100 focus:bg-gray-100"
                           >
                             {n} passenger{n > 1 ? "s" : ""}
                           </SelectItem>
@@ -386,6 +331,7 @@ export default function BookingCap() {
                 </div>
               </CardContent>
             </Card>
+
 
             <Card className="bg-white/50 backdrop-blur-l rounded-2xl p-3 border border-black/15 shadow-lg">
               <CardHeader className="pb-4">
@@ -405,6 +351,7 @@ export default function BookingCap() {
                     required
                   />
                 </div>
+
                 <div className="space-y-3">
                   <Label className="text-base font-semibold text-black">Last Name</Label>
                   <Input
@@ -415,6 +362,7 @@ export default function BookingCap() {
                     required
                   />
                 </div>
+
                 <div className="space-y-3">
                   <Label className="text-base font-semibold text-black flex items-center gap-2">
                     <Mail className="h-4 w-4 text-black" />
@@ -429,6 +377,7 @@ export default function BookingCap() {
                     required
                   />
                 </div>
+
                 <div className="space-y-3">
                   <Label className="text-base font-semibold text-black flex items-center gap-2">
                     <Phone className="h-4 w-4 text-black" />
@@ -443,6 +392,7 @@ export default function BookingCap() {
                     required
                   />
                 </div>
+
                 <div className="md:col-span-2 space-y-3">
                   <Label className="text-base font-semibold text-black flex items-center gap-2">
                     <MessageSquare className="h-4 w-4 text-black" />
@@ -457,20 +407,19 @@ export default function BookingCap() {
                 </div>
               </CardContent>
             </Card>
-
             <Card className="bg-white/50 backdrop-blur-l rounded-2xl p-3 border border-black/15 shadow-lg">
               <CardContent className="p-6">
                 {message && (
                   <div
-                    className={`mb-4 p-4 rounded-lg border-2 ${
-                      message.includes("✅")
+                    className={`mb-4 p-4 rounded-lg border-2 ${message.includes("✅")
                         ? "bg-green-50 text-green-800 border-green-200"
                         : "bg-red-50 text-red-800 border-red-200"
-                    }`}
+                      }`}
                   >
                     <p className="font-medium">{message}</p>
                   </div>
                 )}
+
                 <Button
                   type="submit"
                   disabled={isSubmitting || !outboundTrip.pickup || !outboundTrip.destination || !selectedVehicle}
@@ -488,6 +437,7 @@ export default function BookingCap() {
                     </>
                   )}
                 </Button>
+
                 <div className="mt-4 text-center text-sm text-gray-600">
                   <p>
                     Need help? Call <span className="font-semibold text-black">+61 435 287 287</span>
@@ -516,3 +466,4 @@ export default function BookingCap() {
     </div>
   )
 }
+
