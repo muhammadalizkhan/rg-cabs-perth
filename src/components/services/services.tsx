@@ -219,7 +219,12 @@ export default function Services() {
                     </div>
 
                     <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
-                      <div className="text-lg font-bold text-gray-900">{service.price}</div>
+                      <button
+                        onClick={() => router.push('/BookNow')}
+                        className="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-500 text-black px-5 py-3 text-l font-bold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group text-sm font-semibold text-white bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 px-4 py-2 rounded shadow transition-transform transform hover:scale-105"
+                      >
+                        Book A Cab
+                      </button>
                       <Link
                         href={service.href}
                         className="flex items-center gap-1 text-sm font-semibold text-gray-700 hover:text-gray-900 group-hover:gap-2 transition-all duration-300"
