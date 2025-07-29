@@ -40,7 +40,7 @@ export default function WhatsAppFab() {
       label: "Contact",
       icon: <Phone className="w-5 h-5" />,
       onClick: () => {
-        router.push("/Contact")
+        router.push("/contact")
         setOpen(false)
       },
       color: "bg-purple-500 hover:bg-purple-600",

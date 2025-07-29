@@ -51,10 +51,10 @@ export default function Hero() {
               </div>
 
               <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-gray-900 leading-tight">
-                BOOK A TAXI IN
+                BOOK A TAXI
                 <br />
                 <span className="bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">
-                  AUSTRALIA
+                  Perth
                 </span>
               </h1>
 
@@ -66,27 +66,25 @@ export default function Hero() {
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
               <Button
-                size="lg"
                 onClick={() => router.push("/BookNow")}
-                className="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black px-8 py-4 text-lg font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-black text-base font-semibold px-6 py-3 rounded-lg transition-colors duration-200 shadow-sm"
               >
-                <Car className="mr-3 h-6 w-6 group-hover:rotate-12 transition-transform duration-300" />
-                Book Now
-                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
-              </Button>
-              <Button
-                onClick={() => (window.location.href = "tel:+61435287287")}
-                variant="outline"
-                size="lg"
-                className="border-2 border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white px-8 py-4 text-lg font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group"
-              >
-                <Phone className="mr-3 h-6 w-6 group-hover:rotate-12 transition-transform duration-300" />
-                <span className="group-hover:text-white transition-colors duration-300">Call Now</span>
+                <Car className="h-5 w-5" />
+                <span>Book Now</span>
               </Button>
 
+              <Button
+                onClick={() => (window.location.href = "tel:+61435287287")}
+                className="w-full sm:w-auto flex items-center justify-center gap-2 border border-gray-300 text-gray-800 hover:bg-gray-800 hover:text-white text-base font-semibold px-6 py-3 rounded-lg transition-colors duration-200 shadow-sm"
+              >
+                <Phone className="h-5 w-5" />
+                <span>Call Now</span>
+              </Button>
             </div>
+
+
 
 
           </div>
