@@ -4,6 +4,7 @@ import Script from "next/script";
 import "./globals.css";
 import Navbar from "@/components/navbar/navbar";
 import Footer from "@/components/footer/footer";
+import Icon from "./icon.png"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -45,7 +46,7 @@ export const metadata: Metadata = {
     description: "Safe and affordable cab service in Perth with airport pickup, baby seat cabs, and more.",
   },
   icons: {
-    icon: "/favicon.icon",
+    icon: "/rgcabsicon.png",
   },
 };
 
