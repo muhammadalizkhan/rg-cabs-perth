@@ -104,7 +104,7 @@ export default function WhatsAppFab() {
             {open ? (
               <X className="w-7 h-7 transition-all duration-200" />
             ) : (
-              <Plus className="w-7 h-7 transition-all duration-200" />
+<MessageCircle className="w-7 h-7 transition-all duration-200" />
             )}
           </div>
 
